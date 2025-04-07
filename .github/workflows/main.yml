@@ -28,7 +28,7 @@ jobs:
           python-version: '3.13'
 
       - name: Abhängigkeiten installieren
-        run: pip install -r requirements.txt
+        run: pip install -r ./computer_vision/requirements.txt
         working-directory: ${{ github.workspace }}
         # working-directory stellt sicher, dass im Root-Verzeichnis nach der Datei gesucht wird.
 

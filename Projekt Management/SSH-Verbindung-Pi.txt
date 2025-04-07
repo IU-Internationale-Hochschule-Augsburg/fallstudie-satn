@@ -1,0 +1,5 @@
+Standart ip im IU Netzwerk:
+  pi zero: 7.32.122.250
+  pi 5: 7.32.121.77
+
+standart pi nutzer

@@ -1,0 +1,32 @@
+name: Unittests
+
+on:
+  pull_request:
+    branches:
+      - main
+      - roboter
+      - computer_vision
+      - feat/pipeline
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Repository auschecken
+        uses: actions/checkout@v3
+
+      - name: Python einrichten
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.13'
+
+      - name: Abhängigkeiten installieren
+        run: |
+          pip install -r requirements.txt
+
+      - name: Unittests ausführen
+        run: python -m unittest discover -s unit_tests -p "*_test.py"

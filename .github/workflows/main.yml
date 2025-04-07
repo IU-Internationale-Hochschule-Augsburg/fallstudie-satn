@@ -6,7 +6,6 @@ on:
       - main
       - roboter
       - computer_vision
-      - feat/pipeline
     types:
       - opened
       - synchronize
@@ -19,14 +18,20 @@ jobs:
       - name: Repository auschecken
         uses: actions/checkout@v3
 
+      - name: Verzeichnisinhalt anzeigen
+        run: ls -la
+        # Dies gibt den Inhalt des Root-Verzeichnisses aus, sodass Sie prüfen können, ob die requirements.txt dort liegt.
+
       - name: Python einrichten
         uses: actions/setup-python@v4
         with:
           python-version: '3.13'
 
       - name: Abhängigkeiten installieren
-        run: |
-          pip install -r requirements.txt
+        run: pip install -r requirements.txt
+        working-directory: ${{ github.workspace }}
+        # working-directory stellt sicher, dass im Root-Verzeichnis nach der Datei gesucht wird.
 
       - name: Unittests ausführen
         run: python -m unittest discover -s unit_tests -p "*_test.py"
+        working-directory: ${{ github.workspace }}

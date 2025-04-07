@@ -85,7 +85,9 @@ Dieses Format stellt sicher, dass alle Änderungen klar dokumentiert und einfach
 
 - Änderungen dürfen nicht direkt in den `main`-Branch gepusht werden.
 - Alle Merges in den `main`-Branch müssen dem **4-Augen-Prinzip** folgen. Das bedeutet, dass ein Merge erst dann erfolgen darf, wenn eine zweite Person den Code geprüft und freigegeben hat.
-- Ebenso dürfen Änderungen von den Entwicklungsbranches (`roboter` oder `computer_vision`) nicht ohne eine gründliche Überprüfung in den `main`-Branch gemergt werden.
+- Ebenso dürfen Änderungen von den Entwicklungsbranches nicht ohne eine gründliche Überprüfung in den `roboter` oder `computer_vision`-Branch gemergt werden.
+- Um Änderungen in `main`, `roboter` oder `computer_vision` zu übernemen MUSS ein Pull request gestellt werden.
+- Fordere bei einem Kollegen direkt ein Review an. Dieser Checkt den Entwicklungs Branch aus und testet ihn. Sollte kein Fehler gefunden werden merged dieser die Änderungen in den Hauptbranch
 
 Diese Maßnahmen stellen sicher, dass die Codequalität stets gewährleistet ist und Fehler frühzeitig erkannt werden.
 

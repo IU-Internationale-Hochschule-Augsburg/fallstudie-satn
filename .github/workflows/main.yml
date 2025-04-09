@@ -26,7 +26,7 @@ jobs:
 
       - name: Abhängigkeiten installieren
         run: |
-          pip install -r requirements.txt
+          pip install -r ./computer_vision/requirements.txt
 
       - name: Unittests ausführen
-        run: python -m unittest discover -s unit_tests -p "*_test.py"
+        run: python -m unittest discover -s ./computer_vision/unit_tests -p "*_test.py"

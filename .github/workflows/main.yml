@@ -4,7 +4,6 @@ on:
   pull_request:
     branches:
       - main
-      - roboter
       - computer_vision
     types:
       - opened
@@ -33,5 +32,5 @@ jobs:
         # working-directory stellt sicher, dass im Root-Verzeichnis nach der Datei gesucht wird.
 
       - name: Unittests ausführen
-        run: python -m unittest discover -s unit_tests -p "*_test.py"
+        run: python -m unittest discover -s ./computer_vision/unit_tests -p "*_test.py"
         working-directory: ${{ github.workspace }}

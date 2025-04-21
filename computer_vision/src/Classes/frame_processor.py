@@ -64,31 +64,47 @@ class FrameProcessor():
 
 
     def get_frame(self):
-        """
-        reads frame and encode it as JPEG.
-        :return: (ok: bool, jpeg_bytes: bytes)
-        """
-        if not self.vc:
-            raise RuntimeError("no camera available")
-        ok, frame = self.vc.read()
-        if not ok:
-            return False, None
-        processed = self._process_frame(frame)
-        # encode as JPEG
-        ok2, jpeg = cv2.imencode('.jpg', processed)
-        if not ok2:
-            return False, None
-        return True, jpeg.tobytes()
+            """
+            Reads a frame from the camera, processes it, and encodes it as JPEG.
+            :return: (ok: bool, jpeg_bytes: bytes)
+            """
+            if not self.vc or not self.vc.isOpened():
+                raise RuntimeError("Camera is not available or not opened.")
+
+            ok, frame = self.vc.read()
+            if not ok or frame is None:
+                return False, None
+
+            # Validate frame dimensions
+            if frame.shape[0] == 0 or frame.shape[1] == 0:
+                return False, None
+
+            # Resize frame if dimensions exceed JPEG limits
+            max_dimension = 65500
+            height, width = frame.shape[:2]
+            if height > max_dimension or width > max_dimension:
+                scaling_factor = max_dimension / max(height, width)
+                new_size = (int(width * scaling_factor), int(height * scaling_factor))
+                frame = cv2.resize(frame, new_size, interpolation=cv2.INTER_AREA)
+
+            processed = self._process_frame(frame)
+
+            # Encode as JPEG
+            ok2, jpeg = cv2.imencode('.jpg', processed)
+            if not ok2:
+                return False, None
+
+            return True, jpeg.tobytes()
 
     def frame_generator(self):
         """
-        Generator for flask endpoint
+        Generator for Flask endpoint to stream video frames.
         """
         try:
             while True:
                 ok, jpeg = self.get_frame()
                 if not ok:
-                    break
+                    continue  # Skip to the next frame
                 # HTTP-Multipart-Format
                 yield (b'--frame\r\n'
                        b'Content-Type: image/jpeg\r\n\r\n' + jpeg + b'\r\n')

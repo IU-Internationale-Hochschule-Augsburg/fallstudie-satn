@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Computer Vision</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000;
+            color: #fff;
+            text-align: center;
+            margin: 0;
+            padding: 2rem;
+        }
+        h1 {
+            margin-bottom: 1.5rem;
+        }
+        #video-container {
+            display: inline-block;
+            border: 2px solid #555;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px #777;
+        }
+        #video-container img {
+            display: block;
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <section id="header">
+        <h1>Live Stream</h1>
+        <smaller>vom Pi Zero</smaller>
+    </section>
+    <div id="video-container">
+        <img src="/videoCapture" alt="Live Stream">
+    </div>
+</body>
+</html>

@@ -42,17 +42,26 @@ class FrameProcessor():
 
     def _process_frame(self, frame):
         """
-        change to black and white, increase contrast and reduze blurr
-        :param frame: BGR-Frame
-        :return: changed frame(grau, gefiltert)
+        Convert the input image to grayscale, enhance contrast, and reduce noise.
+        :param frame: Input image (BGR or grayscale)
+        :return: Processed image (grayscale, denoised)
         """
-        # Kontrast erhöhen
+        # Adjust contrast and brightness
         contrast = cv2.convertScaleAbs(frame, alpha=self.alpha, beta=self.beta)
-        # Graustufen
-        gray = cv2.cvtColor(contrast, cv2.COLOR_BGR2GRAY)
-        # Rauschunterdrückung
+
+        # Check if the image is already in grayscale
+        if contrast.ndim == 3 and contrast.shape[2] == 3:
+            # Convert to grayscale
+            gray = cv2.cvtColor(contrast, cv2.COLOR_BGR2GRAY)
+        else:
+            # Image is already in grayscale
+            gray = contrast
+
+        # Reduce noise using median filter
         denoised = cv2.medianBlur(gray, ksize=self.blur_ksize)
+
         return denoised
+
 
     def get_frame(self):
         """

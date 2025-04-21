@@ -64,37 +64,41 @@ class FrameProcessor():
 
 
     def get_frame(self):
-            """
-            Reads a frame from the camera, processes it, and encodes it as JPEG.
-            :return: (ok: bool, jpeg_bytes: bytes)
-            """
-            if not self.vc or not self.vc.isOpened():
-                raise RuntimeError("Camera is not available or not opened.")
+        """
+        Reads a frame from the camera, processes it, and encodes it as JPEG.
+        :return: (ok: bool, jpeg_bytes: bytes)
+        """
+        if not self.vc or not self.vc.isOpened():
+            raise RuntimeError("Camera is not available or not opened.")
 
-            ok, frame = self.vc.read()
-            if not ok or frame is None:
+        ok, frame = self.vc.read()
+        if not ok or frame is None:
+            return False, None
+
+        height, width = frame.shape[:2]
+        if height == 0 or width == 0:
+            return False, None
+
+        # Resize frame if dimensions exceed JPEG limits
+        max_dimension = 65500
+        if height > max_dimension or width > max_dimension:
+            scaling_factor = max_dimension / max(height, width)
+            if scaling_factor <= 0:
                 return False, None
-
-            # Validate frame dimensions
-            if frame.shape[0] == 0 or frame.shape[1] == 0:
+            new_size = (int(width * scaling_factor), int(height * scaling_factor))
+            if new_size[0] <= 0 or new_size[1] <= 0:
                 return False, None
+            frame = cv2.resize(frame, new_size, interpolation=cv2.INTER_AREA)
 
-            # Resize frame if dimensions exceed JPEG limits
-            max_dimension = 65500
-            height, width = frame.shape[:2]
-            if height > max_dimension or width > max_dimension:
-                scaling_factor = max_dimension / max(height, width)
-                new_size = (int(width * scaling_factor), int(height * scaling_factor))
-                frame = cv2.resize(frame, new_size, interpolation=cv2.INTER_AREA)
+        processed = self._process_frame(frame)
 
-            processed = self._process_frame(frame)
+        # Encode as JPEG
+        ok2, jpeg = cv2.imencode('.jpg', processed)
+        if not ok2:
+            return False, None
 
-            # Encode as JPEG
-            ok2, jpeg = cv2.imencode('.jpg', processed)
-            if not ok2:
-                return False, None
+        return True, jpeg.tobytes()
 
-            return True, jpeg.tobytes()
 
     def frame_generator(self):
         """

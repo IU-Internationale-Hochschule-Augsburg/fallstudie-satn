@@ -45,10 +45,10 @@ def video_capture():
                 break
 
     return Response(generate(), mimetype='multipart/x-mixed-replace; boundary=frame')
-    
+
 @app.route('/liveStream')
 def liveStream():
     return render_template('liveStream.html')
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0',port=5000, threaded=true)
+    app.run(host='0.0.0.0',port=5000, threaded=True)

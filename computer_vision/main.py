@@ -6,7 +6,6 @@ from src.Classes.frame_processor import FrameProcessor
 
 app = Flask(__name__)
 camera = FrameProcessor()
-camera.open()
 
 @app.route('/info')
 def info():
@@ -29,6 +28,11 @@ def data():
 @app.route('/videoCapture')
 def video_capture():
     """Direkte MJPEG-Ausgabe ohne Delay."""
+    try:
+        camera.open()
+    except RuntimeError as e:
+        return f"Kamera konnte nicht geöffnet werden: {e}", 500
+
     def generate():
         while True:
             try:
@@ -41,7 +45,7 @@ def video_capture():
                 break
 
     return Response(generate(), mimetype='multipart/x-mixed-replace; boundary=frame')
-
+    
 @app.route('/liveStream')
 def liveStream():
     return render_template('liveStream.html')

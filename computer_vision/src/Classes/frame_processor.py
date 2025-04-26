@@ -1,117 +1,103 @@
+from picamera2 import Picamera2, Preview
 import cv2
+import threading
 
-class FrameProcessor():
+class FrameProcessor:
     """
-    Encapsulation of the pi cam stream
+    Encapsulation of the pi cam stream using Picamera2.
     """
-    def __init__(self, src=0, width=854, height=480, alpha=2.0, beta=0, blur_ksize=3):
+    def __init__(self, width=1280, height=720, alpha=2.0, beta=0, blur_ksize=3):
         """
-        :param src: camera-path (Index oder Pfad)
         :param width: width of the output
-        :param height: hight of the output
-        :param alpha: contrast
-        :param beta: lightnest
-        :param blur_ksize: blursize
+        :param height: height of the output
+        :param alpha: contrast factor
+        :param beta: brightness offset
+        :param blur_ksize: kernel size for median blur
         """
-        self.src = src
         self.width = width
         self.height = height
         self.alpha = alpha
         self.beta = beta
         self.blur_ksize = blur_ksize
-        self.vc = None
+        self.picam2 = None
+        self.running = False
+        self.frame = None
+        self.lock = threading.Lock()
 
     def open(self):
-        """Opens camera with the settings"""
-        self.vc = cv2.VideoCapture(self.src)
-        self.vc.set(cv2.CAP_PROP_FRAME_WIDTH, self.width)
-        self.vc.set(cv2.CAP_PROP_FRAME_HEIGHT, self.height)
-        if not self.vc.isOpened():
-            raise RuntimeError(f"camera {self.src} coundnt be accessd")
-        # read first frame 
-        ok, frame = self.vc.read()
-        if not ok:
-            raise RuntimeError("first camera access failed")
-        
+        """Initializes and starts the Picamera2 pipeline."""
+        if self.running:
+            return
+        # Configure Picamera2
+        self.picam2 = Picamera2()
+        config = self.picam2.create_preview_configuration(
+            main={"format": 'RGB888', "size": (self.width, self.height)}
+        )
+        self.picam2.configure(config)
+        self.picam2.start()
+        self.running = True
+        # Start background thread to grab frames
+        threading.Thread(target=self._capture_loop, daemon=True).start()
 
     def release(self):
-        """Release camera """
-        if self.vc:
-            self.vc.release()
-            self.vc = None
+        """Stops the camera and releases resources."""
+        if not self.running:
+            return
+        self.running = False
+        if self.picam2:
+            self.picam2.stop()
+            self.picam2 = None
+
+    def _capture_loop(self):
+        """Continuously captures frames from Picamera2 to self.frame."""
+        while self.running:
+            img = self.picam2.capture_array()
+            with self.lock:
+                self.frame = img
 
     def _process_frame(self, frame):
         """
         Convert the input image to grayscale, enhance contrast, and reduce noise.
-        :param frame: Input image (BGR or grayscale)
+        :param frame: Input image (RGB or grayscale as numpy array)
         :return: Processed image (grayscale, denoised)
         """
+        # Convert RGB to BGR for OpenCV processing
+        bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
         # Adjust contrast and brightness
-        contrast = cv2.convertScaleAbs(frame, alpha=self.alpha, beta=self.beta)
-
-        # Check if the image is already in grayscale
-        if contrast.ndim == 3 and contrast.shape[2] == 3:
-            # Convert to grayscale
-            gray = cv2.cvtColor(contrast, cv2.COLOR_BGR2GRAY)
-        else:
-            # Image is already in grayscale
-            gray = contrast
-
+        contrasted = cv2.convertScaleAbs(bgr, alpha=self.alpha, beta=self.beta)
+        # Convert to grayscale
+        gray = cv2.cvtColor(contrasted, cv2.COLOR_BGR2GRAY)
         # Reduce noise using median filter
         denoised = cv2.medianBlur(gray, ksize=self.blur_ksize)
-
         return denoised
-
 
     def get_frame(self):
         """
-        Reads a frame from the camera, processes it, and encodes it as JPEG.
+        Reads the latest frame, processes it, and encodes it as JPEG.
         :return: (ok: bool, jpeg_bytes: bytes)
         """
-        if not self.vc or not self.vc.isOpened():
-            raise RuntimeError("Camera is not available or not opened.")
-
-        ok, frame = self.vc.read()
-        if not ok or frame is None:
+        if not self.running:
+            raise RuntimeError("Camera not opened")
+        with self.lock:
+            frame = self.frame.copy() if self.frame is not None else None
+        if frame is None:
             return False, None
-
-        height, width = frame.shape[:2]
-        if height == 0 or width == 0:
-            return False, None
-
-        # Resize frame if dimensions exceed JPEG limits
-        max_dimension = 65500
-        if height > max_dimension or width > max_dimension:
-            scaling_factor = max_dimension / max(height, width)
-            if scaling_factor <= 0:
-                return False, None
-            new_size = (int(width * scaling_factor), int(height * scaling_factor))
-            if new_size[0] <= 0 or new_size[1] <= 0:
-                return False, None
-            frame = cv2.resize(frame, new_size, interpolation=cv2.INTER_AREA)
-
         processed = self._process_frame(frame)
-
-        # Encode as JPEG
-        ok2, jpeg = cv2.imencode('.jpg', processed)
-        if not ok2:
+        ok, jpeg = cv2.imencode('.jpg', processed)
+        if not ok:
             return False, None
-
         return True, jpeg.tobytes()
-
 
     def frame_generator(self):
         """
-        Generator for Flask endpoint to stream video frames.
+        Generator for Flask endpoint to stream video frames (MJPEG).
         """
         try:
             while True:
                 ok, jpeg = self.get_frame()
                 if not ok:
-                    continue  # Skip to the next frame
-                # HTTP-Multipart-Format
+                    continue
                 yield (b'--frame\r\n'
                        b'Content-Type: image/jpeg\r\n\r\n' + jpeg + b'\r\n')
         finally:
             self.release()
-

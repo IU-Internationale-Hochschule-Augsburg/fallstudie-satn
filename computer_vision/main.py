@@ -7,6 +7,18 @@ from src.Classes.frame_processor import FrameProcessor
 app = Flask(__name__)
 camera = FrameProcessor()
 
+@app.before_first_request
+def init_camera():
+    """
+    Öffnet die Kamera genau einmal vor der ersten Anfrage.
+    """
+    try:
+        camera.open()
+        app.logger.info(f"Kamera geöffnet unter src={camera.src}")
+    except RuntimeError as e:
+        app.logger.error(f"Kamera konnte nicht geöffnet werden: {e}")
+
+
 @app.route('/info')
 def info():
     return json.dumps({'status': 'running'})
@@ -27,25 +39,24 @@ def data():
 
 @app.route('/videoCapture')
 def video_capture():
-    """Direkte MJPEG-Ausgabe ohne Delay."""
-    try:
-        camera.open()
-    except RuntimeError as e:
-        return f"Kamera konnte nicht geöffnet werden: {e}", 500
+    """Direkte MJPEG-Ausgabe aus der bereits geöffneten Kamera."""
+    if not camera.vc or not camera.vc.isOpened():
+        return "Kamera nicht verfügbar oder nicht geöffnet", 503
 
     def generate():
         while True:
             try:
                 ok, jpeg = camera.get_frame()
-                if ok and jpeg:
-                    yield (b'--frame\r\n'
-                           b'Content-Type: image/jpeg\r\n\r\n' + jpeg + b'\r\n')
+                if not ok:
+                    continue
+                yield (b'--frame\r\n'
+                       b'Content-Type: image/jpeg\r\n\r\n' + jpeg + b'\r\n')
             except Exception as e:
-                print(f"Fehler beim Streamen: {e}")
+                app.logger.error(f"Fehler beim Streamen: {e}")
                 break
 
     return Response(generate(), mimetype='multipart/x-mixed-replace; boundary=frame')
-
+    
 @app.route('/liveStream')
 def liveStream():
     return render_template('liveStream.html')

@@ -7,18 +7,6 @@ from src.Classes.frame_processor import FrameProcessor
 app = Flask(__name__)
 camera = FrameProcessor()
 
-@app.before_first_request
-def init_camera():
-    """
-    Öffnet die Kamera genau einmal vor der ersten Anfrage.
-    """
-    try:
-        camera.open()
-        app.logger.info(f"Kamera geöffnet unter src={camera.src}")
-    except RuntimeError as e:
-        app.logger.error(f"Kamera konnte nicht geöffnet werden: {e}")
-
-
 @app.route('/info')
 def info():
     return json.dumps({'status': 'running'})
@@ -39,9 +27,12 @@ def data():
 
 @app.route('/videoCapture')
 def video_capture():
-    """Direkte MJPEG-Ausgabe aus der bereits geöffneten Kamera."""
-    if not camera.vc or not camera.vc.isOpened():
-        return "Kamera nicht verfügbar oder nicht geöffnet", 503
+    """Direkte MJPEG-Ausgabe aus der Kamera."""
+    try:
+        camera.open()
+    except RuntimeError as e:
+        app.logger.error(f"Kamera konnte nicht geöffnet werden: {e}")
+        return str(e), 500
 
     def generate():
         while True:
@@ -56,7 +47,7 @@ def video_capture():
                 break
 
     return Response(generate(), mimetype='multipart/x-mixed-replace; boundary=frame')
-    
+
 @app.route('/liveStream')
 def liveStream():
     return render_template('liveStream.html')

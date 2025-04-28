@@ -3,9 +3,11 @@ from flask import render_template
 import json
 
 from src.Classes.frame_processor import FrameProcessor
+from src.Classes.yolo import YoloWrapper
 
 app = Flask(__name__)
 camera = FrameProcessor()
+yolo = YoloWrapper('yolo11n-obb.pt', conf=0.3, iou=0.45, device='cpu')
 
 @app.route('/info')
 def info():
@@ -27,7 +29,7 @@ def data():
 
 @app.route('/videoCapture')
 def video_capture():
-    """Direkte MJPEG-Ausgabe aus der Kamera."""
+    """Direkte MJPEG-Ausgabe aus der Kamera mit YOLO-OBB-Overlay."""
     try:
         camera.open()
     except RuntimeError as e:
@@ -40,14 +42,33 @@ def video_capture():
                 ok, jpeg = camera.get_frame()
                 if not ok:
                     continue
+
+                # 1) JPEG-Daten in numpy-Array zurückwandeln
+                np_arr = np.frombuffer(jpeg, dtype=np.uint8)
+                frame = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+
+                # 2) Objekterkennung + Bounding-Box-Zeichnen
+                bboxes = yolo.detect(frame)
+                annotated = yolo.draw_boxes(frame, bboxes)
+
+                # 3) Annotiertes Bild wieder zu JPEG komprimieren
+                ret, buffer = cv2.imencode('.jpg', annotated)
+                if not ret:
+                    continue
+                jpg_bytes = buffer.tobytes()
+
+                # 4) Yield im MJPEG-Format
                 yield (b'--frame\r\n'
-                       b'Content-Type: image/jpeg\r\n\r\n' + jpeg + b'\r\n')
+                       b'Content-Type: image/jpeg\r\n\r\n' + jpg_bytes + b'\r\n')
             except Exception as e:
                 app.logger.error(f"Fehler beim Streamen: {e}")
                 break
 
-    return Response(generate(), mimetype='multipart/x-mixed-replace; boundary=frame')
-
+    return Response(
+        generate(),
+        mimetype='multipart/x-mixed-replace; boundary=frame'
+    )
+    
 @app.route('/liveStream')
 def liveStream():
     return render_template('liveStream.html')

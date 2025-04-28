@@ -2,6 +2,9 @@ from flask import Flask, Response
 from flask import render_template
 import json
 
+import cv2
+import numpy as np  # <-- das
+
 from src.Classes.frame_processor import FrameProcessor
 from src.Classes.yolo import YoloWrapper
 

@@ -1,4 +1,9 @@
-from picamera2 import Picamera2, Preview
+try:
+    from picamera2 import Picamera2, Preview
+except ImportError:
+    Picamera2 = None
+    Preview = None
+    
 import cv2
 import threading
 

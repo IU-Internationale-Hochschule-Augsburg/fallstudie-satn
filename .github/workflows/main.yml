@@ -18,7 +18,16 @@ jobs:
         uses: actions/checkout@v3
         
       - name: System Dependencies installieren
-        run: sudo apt-get update && sudo apt-get install -y libcap-dev
+        run: |
+          sudo apt-get update
+          # libcap-dev needed by python-prctl
+          sudo apt-get install -y libcap-dev
+          # libcamera C headers and shared libs
+          sudo apt-get install -y libcamera-dev
+          # Python 3 bindings for libcamera
+          sudo apt-get install -y python3-libcamera
+          # Optional: libcamera CLI tools
+          sudo apt-get install -y libcamera-tools
 
       - name: Python einrichten
         uses: actions/setup-python@v4

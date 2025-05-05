@@ -1,4 +1,4 @@
-from unit_test.MockTask import MockTask
+from MockTask import MockTask
 import unittest
 import os
 from src.Classes.TaskPipeline.TaskPipeline import TaskPipeline

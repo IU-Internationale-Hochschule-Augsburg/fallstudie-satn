@@ -105,4 +105,3 @@ Diese Maßnahmen stellen sicher, dass die Codequalität stets gewährleistet ist
 
 Diese Richtlinien sind essentiell, um die Zusammenarbeit im Team zu strukturieren, den Entwicklungsprozess transparent zu gestalten und die Qualität des Endprodukts sicherzustellen. Änderungen an dieser Dokumentation sollten ebenfalls über Issues und nach dem 4-Augen-Prinzip in den `main`-Branch integriert werden.
 
-asdf

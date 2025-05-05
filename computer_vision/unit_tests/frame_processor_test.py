@@ -4,7 +4,7 @@ import numpy as np
 import cv2
 
 # Import the FrameProcessor class from its module path
-from computer_vision.src.Classes.frame_processor import FrameProcessor
+from src.Classes.frame_processor import FrameProcessor
 
 class TestFrameProcessor(unittest.TestCase):
     def setUp(self):

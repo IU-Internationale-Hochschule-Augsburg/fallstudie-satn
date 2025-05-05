@@ -16,11 +16,7 @@ jobs:
     steps:
       - name: Repository auschecken
         uses: actions/checkout@v3
-
-      - name: Verzeichnisinhalt anzeigen
-        run: ls -la
-        # Dies gibt den Inhalt des Root-Verzeichnisses aus, sodass Sie prüfen können, ob die requirements.txt dort liegt.
-
+        
       - name: System Dependencies installieren
         run: sudo apt-get update && sudo apt-get install -y libcap-dev
 
@@ -32,13 +28,6 @@ jobs:
       - name: Python Abhängigkeiten installieren
         run: pip install -r ./computer_vision/requirements.txt
         working-directory: ${{ github.workspace }}
-        # working-directory stellt sicher, dass im Root-Verzeichnis nach der Datei gesucht wird.
-
-      - name: In das Verzeichnis wechseln
-        run: cd computer_vision
-
-      - name: Verzeichnisinhalt anzeigen
-        run: ls -la
         
       - name: Unittests ausführen
-        run: python -m unittest discover -s ./unit_tests -p "*_test.py"
+        run: cd ./computer_vision && python -m unittest discover -s ./unit_tests -p "*_test.py" -t .

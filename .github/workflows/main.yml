@@ -36,6 +36,9 @@ jobs:
 
       - name: In das Verzeichnis wechseln
         run: cd computer_vision
+
+      - name: Verzeichnisinhalt anzeigen
+        run: ls -la
         
       - name: Unittests ausführen
         run: python -m unittest discover -s ./unit_tests -p "*_test.py"

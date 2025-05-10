@@ -1,4 +1,4 @@
-from Task import Task
+from src.Classes.TaskPipeline.Task import Task
 
 class TaskForward(Task):
     """

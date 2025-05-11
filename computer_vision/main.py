@@ -1,13 +1,13 @@
 from flask import Flask, Response, request
 from flask import render_template
 import json
-from src.Classes.frame_processor import FrameProcessor
+#from src.Classes.frame_processor import FrameProcessor
 from src.Classes.TaskPipeline.TaskPipeline import TaskPipeline
 from src.Classes.TaskPipeline.TaskForward import TaskForward
 from src.Classes.TaskPipeline.TaskTurn import TaskTurn
 
 app = Flask(__name__)
-camera = FrameProcessor()
+#camera = FrameProcessor()
 
 
 @app.route('/info')
@@ -89,6 +89,9 @@ def add_task():
 
     return Response(status=200)
 
+@app.route('/manualControl', methods=['GET'])
+def manual_control():
+    return render_template('manual_control.html')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, threaded=True)

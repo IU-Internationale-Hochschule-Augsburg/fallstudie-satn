@@ -156,7 +156,7 @@
         );
         let response = await fetch(request)
         console.log(response)
-        document.getElementById("response-container").innerHTML = await response.text()
+        document.getElementById("response-container").innerHTML = response.status + '<br>' + await response.text()
     })
 
     document.getElementById("preset-left").addEventListener("click", function () {

@@ -1,12 +1,12 @@
-import flask
+from flask import *
 import json
-import src.Classes.frame_processor
-import src.Classes.TaskPipeline.TaskPipeline
-import src.Classes.TaskPipeline.TaskForward
-import src.Classes.TaskPipeline.TaskTurn
+#from src.Classes.frame_processor import *
+from src.Classes.TaskPipeline.TaskPipeline import *
+from src.Classes.TaskPipeline.TaskForward import *
+from src.Classes.TaskPipeline.TaskTurn import *
 
 app = Flask(__name__)
-camera = FrameProcessor()
+#camera = FrameProcessor()
 
 
 @app.route('/info')
@@ -79,14 +79,22 @@ def add_task():
             task = TaskTurn(angle=angle)
     else:
         return Response(status=400, response=f'could not identify task type ${task_type}')
-
-    if TaskPipeline.push_task(task):
+    pipe = TaskPipeline()
+    if pipe.push_task(task=task):
         print("added task", vars(task), "to pipeline")
     else:
         print("failed adding task", vars(task), "to pipeline")
         return Response(status=500)
 
     return Response(status=200)
+
+@app.route('/task', methods=['GET'])
+def get_task():
+    pipe = TaskPipeline()
+    task = pipe.pop_task()
+    if task is None:
+        return Response(status=500)
+    return Response(status=200, response =vars(task))
 
 @app.route('/manualControl', methods=['GET'])
 def manual_control():

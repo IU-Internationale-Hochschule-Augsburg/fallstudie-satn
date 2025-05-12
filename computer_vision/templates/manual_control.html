@@ -37,6 +37,7 @@
             background-color: transparent;
             border: 1px solid lightgray;
             border-radius: 5px;
+            font-size: large;
         }
 
         #send-button:hover {
@@ -44,11 +45,30 @@
             cursor: pointer;
         }
 
+        #send-button:active {
+            box-shadow: inset 0 0 2px 0 aqua;
+        }
+
         #angle input, #duration input {
+            background: transparent;
             border: 1px solid lightgray;
             padding: 2px;
             border-radius: 10px;
             width: calc(100% - 4px);
+        }
+
+        #preset-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+
+        #preset-actions > button {
+            background: transparent;
+        }
+
+        #preset-actions > button:hover {
+            box-shadow: inset 0 0 2px 0 aqua;
+            cursor: pointer;
         }
 
     </style>
@@ -80,6 +100,18 @@
             <h3><label for="angle-input">Angle</label></h3>
             <input id="angle-input">
         </div>
+        <h3>Presets</h3>
+        <div id="preset-actions">
+            <button id="preset-left">
+                Turn left
+            </button>
+            <button id="preset-forward">
+                Forward
+            </button>
+            <button id="preset-right">
+                Turn right
+            </button>
+        </div>
     </div>
     <div>
         <h2>Response</h2>
@@ -93,7 +125,9 @@
 </div>
 <script>
     duration = document.getElementById("duration")
+    durationInput = document.getElementById("duration-input")
     angle = document.getElementById("angle")
+    angleInput = document.getElementById("angle-input")
     forwardInput = document.getElementById("forward-input")
     turnInput = document.getElementById("turn-input")
 
@@ -123,6 +157,27 @@
         let response = await fetch(request)
         console.log(response)
         document.getElementById("response-container").innerHTML = await response.text()
+    })
+
+    document.getElementById("preset-left").addEventListener("click", function () {
+        angleInput.value = -90
+        forwardInput.checked = false
+        turnInput.checked = true
+        turnInput.dispatchEvent(new Event("change"))
+    })
+
+    document.getElementById("preset-forward").addEventListener("click", function () {
+        durationInput.value = 2000
+        forwardInput.checked = true
+        turnInput.checked = false
+        forwardInput.dispatchEvent(new Event("change"))
+    })
+
+    document.getElementById("preset-right").addEventListener("click", function () {
+        angleInput.value = 90
+        forwardInput.checked = false
+        turnInput.checked = true
+        turnInput.dispatchEvent(new Event("change"))
     })
 </script>
 </body>

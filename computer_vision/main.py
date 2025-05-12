@@ -93,8 +93,9 @@ def get_task():
     pipe = TaskPipeline()
     task = pipe.pop_task()
     if task is None:
-        return Response(status=500)
-    return Response(status=200, response =vars(task))
+        return Response(status=404)
+    print("returning task:",vars(task))
+    return Response(status=200, response=json.dumps(vars(task)), mimetype='application/json')
 
 @app.route('/manualControl', methods=['GET'])
 def manual_control():

@@ -1,12 +1,12 @@
 from flask import *
 import json
-#from src.Classes.frame_processor import *
+from src.Classes.frame_processor import *
 from src.Classes.TaskPipeline.TaskPipeline import *
 from src.Classes.TaskPipeline.TaskForward import *
 from src.Classes.TaskPipeline.TaskTurn import *
 
 app = Flask(__name__)
-#camera = FrameProcessor()
+camera = FrameProcessor()
 
 
 @app.route('/info')

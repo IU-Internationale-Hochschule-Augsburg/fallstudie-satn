@@ -13,4 +13,4 @@ class Task(ABC):
 
         :return: A dict representing the object's state
         """
-        pass
+        return vars(self)

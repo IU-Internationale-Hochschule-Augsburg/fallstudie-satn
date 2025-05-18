@@ -1,2 +1,136 @@
-# Ignoriere rekursiv alle __pycache__-Verzeichnisse
-**/__pycache__/
+# =========================
+# Globale Ignorierregeln
+# =========================
+
+# Betriebssysteme
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Editor- und IDE-Dateien
+.vscode/
+.idea/
+*.sublime-*
+*.code-workspace
+*.swp
+*~
+\#*\#
+*.tmp
+
+# Logs, Datenbanken, temporäre Dateien
+*.log
+*.sql
+*.sqlite
+*.bak
+*.old
+*.orig
+*.lock
+
+# =========================
+# Arduino-spezifisch
+# =========================
+
+# Kompilierte Binärdateien
+*.hex
+*.elf
+*.bin
+
+# Build‑Ordner (für z.B. PlatformIO oder Arduino IDE)
+.build/
+build/
+out/
+
+# Konfigurations- & Metadata-Dateien
+library.properties
+libraries/**/library.properties  # falls Unterbibliotheken
+
+# =========================
+# Python / Flask
+# =========================
+
+# Byte-compiled / Optimized
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtuelle Umgebungen
+env/
+venv/
+ENV/
+environment/
+.env/
+*.env
+
+# Packaging / Distribution
+build/
+dist/
+*.egg-info/
+.wheelhouse/
+
+# Test- und Coverage-Reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+.pytest_cache/
+
+# Flask Instance-Folder
+instance/
+
+# Migrationen (z.B. Flask-Migrate)
+migrations/
+
+# Sphinx-Dokumentation
+docs/_build/
+
+# =========================
+# Sonstige Frameworks & Tools
+# =========================
+
+# Node.js (falls Frontend/Asset-Pipeline)
+node_modules/
+npm-debug.log*
+yarn-error.log*
+
+# Docker
+docker-compose.override.yml
+*.dockerfile
+
+# ====================================
+# Selbstgeschriebene Python-Packages
+# ====================================
+
+# Ignoriere lokale Entwicklungspakete,
+# sofern du sie im Repo verwaltest, nicht in site-packages installierst.
+*.egg/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# PEP 582 (falls verwendet)
+__pypackages__/
+
+# static & media (falls Flask-Uploads)
+instance/uploads/
+static/uploads/
+
+# =========================
+# PyCharm (IDE) Dateien
+# =========================
+
+# Projekt- und Arbeitsbereichseinstellungen
+.idea/
+# Modul-Dateien
+*.iml
+# Weitere IntelliJ-IDE-Dateien
+*.iws
+*.ipr
+# lokale Run/Debug-Konfigurationen
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/**/usage.statistics.xml
+.idea/**/dictionaries/
+.idea/**/shelf/

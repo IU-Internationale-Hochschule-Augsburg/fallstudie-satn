@@ -16,13 +16,18 @@ jobs:
     steps:
       - name: Repository auschecken
         uses: actions/checkout@v3
-
-      - name: Verzeichnisinhalt anzeigen
-        run: ls -la
-        # Dies gibt den Inhalt des Root-Verzeichnisses aus, sodass Sie prüfen können, ob die requirements.txt dort liegt.
-
+        
       - name: System Dependencies installieren
-        run: sudo apt-get update && sudo apt-get install -y libcap-dev
+        run: |
+          sudo apt-get update
+          # libcap-dev needed by python-prctl
+          sudo apt-get install -y libcap-dev
+          # libcamera C headers and shared libs
+          sudo apt-get install -y libcamera-dev
+          # Python 3 bindings for libcamera
+          sudo apt-get install -y python3-libcamera
+          # Optional: libcamera CLI tools
+          sudo apt-get install -y libcamera-tools
 
       - name: Python einrichten
         uses: actions/setup-python@v4
@@ -32,10 +37,6 @@ jobs:
       - name: Python Abhängigkeiten installieren
         run: pip install -r ./computer_vision/requirements.txt
         working-directory: ${{ github.workspace }}
-        # working-directory stellt sicher, dass im Root-Verzeichnis nach der Datei gesucht wird.
-
-      - name: In das Verzeichnis wechseln
-        run: cd computer_vision
         
       - name: Unittests ausführen
-        run: python -m unittest discover -s ./unit_tests -p "*_test.py"
+        run: cd ./computer_vision && python -m unittest discover -s ./unit_tests -p "*_test.py"

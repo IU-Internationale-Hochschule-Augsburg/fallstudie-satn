@@ -34,6 +34,7 @@ jobs:
           arduino-cli lib install R4HttpClient
           arduino-cli lib install A4990MotorShield
           arduino-cli lib install Arduino_JSON
+          arduino-cli lib install Zumo32U4
   
       - name: Alle Sketches in ./roboter kompilieren
         run: |

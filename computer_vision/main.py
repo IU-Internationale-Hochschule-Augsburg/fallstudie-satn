@@ -1,6 +1,5 @@
-from math import floor
-
-from flask import *
+from flask import Flask, Response
+from flask import render_template
 import json
 #from src.Classes.frame_processor import *
 from src.Classes.TaskPipeline.TaskPipeline import *

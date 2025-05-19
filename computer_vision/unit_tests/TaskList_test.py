@@ -31,5 +31,5 @@ class TestTaskList(unittest.TestCase):
         task_list.push_task(task)
 
         new_task_list = TaskList()
-        new_task_list.init_stack()
+        new_task_list.init_pipeline()
         self.assertEqual(new_task_list.pop_task(), task)

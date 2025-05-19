@@ -2,147 +2,105 @@ import unittest
 from unittest.mock import patch, MagicMock
 import numpy as np
 import cv2
+import threading
 
-# Import the FrameProcessor class from its module path
-from src.Classes.frame_processor import FrameProcessor
+# Import the FrameProcessor class
+from src.Classes.frame_processor import FrameProcessor, Picamera2
 
 class TestFrameProcessor(unittest.TestCase):
     def setUp(self):
-        """
-        Create a dummy frame and instantiate the processor.
-        The dummy frame simulates a 480×854 BGR image filled with mid‑gray values.
-        """
-        self.sample_frame = np.ones((480, 854, 3), dtype=np.uint8) * 127
+        self.height = 720
+        self.width = 1280
+        self.sample_frame = np.ones((self.height, self.width, 3), dtype=np.uint8) * 127
         self.processor = FrameProcessor()
 
-    @patch('src.Classes.frame_processor.cv2.VideoCapture')
-    def test_open_successful(self, mock_VideoCapture):
-        """
-        Verify that open() correctly initializes the camera source,
-        sets the desired resolution, and reads the first frame without errors.
-        """
-        # Configure the VideoCapture mock to behave as if the camera opened OK
-        mock_vc = MagicMock()
-        mock_vc.isOpened.return_value = True
-        mock_vc.read.return_value = (True, self.sample_frame)
-        mock_VideoCapture.return_value = mock_vc
+        patcher = patch('src.Classes.frame_processor.Picamera2')
+        self.mock_picam2_class = patcher.start()
+        self.addCleanup(patcher.stop)
 
-        # Should not raise an exception
+        self.mock_picam2 = MagicMock()
+        self.mock_picam2.create_preview_configuration.return_value = 'config'
+        self.mock_picam2.capture_array.return_value = self.sample_frame
+        self.mock_picam2_class.return_value = self.mock_picam2
+
+    def test_open_initializes_camera(self):
         self.processor.open()
 
-        # Confirm that VideoCapture was called with default src=0
-        mock_VideoCapture.assert_called_with(0)
-        # Confirm that resolution settings were applied
-        mock_vc.set.assert_any_call(cv2.CAP_PROP_FRAME_WIDTH, 854)
-        mock_vc.set.assert_any_call(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-        # Confirm that read() was invoked to fetch the first frame
-        mock_vc.read.assert_called()
+        self.mock_picam2_class.assert_called_once()
+        self.mock_picam2.create_preview_configuration.assert_called_with(
+            main={"format": 'RGB888', "size": (self.processor.width, self.processor.height)}
+        )
+        self.mock_picam2.configure.assert_called_once_with('config')
+        self.mock_picam2.start.assert_called_once()
+        self.assertTrue(self.processor.running)
 
-    @patch('src.Classes.frame_processor.cv2.VideoCapture')
-    def test_open_failure_no_device(self, mock_VideoCapture):
-        """
-        If isOpened() returns False, open() should raise a RuntimeError
-        indicating that the camera could not be opened.
-        """
-        mock_vc = MagicMock()
-        mock_vc.isOpened.return_value = False
-        mock_VideoCapture.return_value = mock_vc
+    def test_capture_loop_updates_frame(self):
+        self.processor.picam2 = self.mock_picam2
+        self.processor.running = True
+        self.mock_picam2.capture_array.side_effect = [self.sample_frame, Exception("Stop")]
+        with self.assertRaises(Exception):
+            self.processor._capture_loop()
+        self.assertTrue(np.array_equal(self.processor.frame, self.sample_frame))
 
+    def test_release_stops_camera(self):
+        self.processor.running = True
+        self.processor.picam2 = self.mock_picam2
+
+        self.processor.release()
+
+        self.assertFalse(self.processor.running)
+        self.mock_picam2.stop.assert_called_once()
+        self.assertIsNone(self.processor.picam2)
+
+    def test_process_frame_outputs_grayscale_image(self):
+        result = self.processor._process_frame(self.sample_frame)
+        self.assertEqual(result.ndim, 2)
+        self.assertEqual(result.shape, (self.height, self.width))
+        self.assertTrue((0 <= result).all() and (result <= 255).all())
+
+    def test_get_frame_raises_if_not_opened(self):
         with self.assertRaises(RuntimeError):
-            self.processor.open()
+            self.processor.get_frame()
 
-    @patch('src.Classes.frame_processor.cv2.VideoCapture')
-    def test_open_failure_read_fail(self, mock_VideoCapture):
-        """
-        If isOpened() succeeds but the first read() fails (returns False),
-        open() must raise a RuntimeError indicating read failure.
-        """
-        mock_vc = MagicMock()
-        mock_vc.isOpened.return_value = True
-        mock_vc.read.return_value = (False, None)
-        mock_VideoCapture.return_value = mock_vc
-
-        with self.assertRaises(RuntimeError):
-            self.processor.open()
-
-    def test_process_frame(self):
-        """
-        Directly test the internal _process_frame method:
-        - Result must be a 2D array (grayscale, blurred).
-        - Dimensions should match the input frame width/height.
-        """
-        processed = self.processor._process_frame(self.sample_frame)
-        self.assertEqual(processed.shape, (480, 854))
-        self.assertEqual(len(processed.shape), 2)
-
-    @patch('src.Classes.frame_processor.cv2.VideoCapture')
-    def test_get_frame_successful(self, mock_VideoCapture):
-        """
-        After a successful open(), get_frame() should return (True, jpeg_bytes).
-        We simulate two reads: the first for open(), the second for get_frame().
-        """
-        mock_vc = MagicMock()
-        mock_vc.isOpened.return_value = True
-        mock_vc.read.side_effect = [
-            (True, self.sample_frame),  # consumed by open()
-            (True, self.sample_frame)   # consumed by get_frame()
-        ]
-        mock_VideoCapture.return_value = mock_vc
-
-        self.processor.open()
+    def test_get_frame_returns_false_if_no_frame(self):
+        self.processor.running = True
+        self.processor.frame = None
         ok, jpeg = self.processor.get_frame()
-
-        self.assertTrue(ok)
-        self.assertIsInstance(jpeg, bytes)
-
-    @patch('src.Classes.frame_processor.cv2.VideoCapture')
-    def test_get_frame_failure(self, mock_VideoCapture):
-        """
-        If get_frame() encounters a read() that returns False, it should
-        return (False, None) rather than throwing an exception.
-        """
-        mock_vc = MagicMock()
-        mock_vc.isOpened.return_value = True
-        mock_vc.read.side_effect = [
-            (True, self.sample_frame),  # open()
-            (False, None)               # get_frame()
-        ]
-        mock_VideoCapture.return_value = mock_vc
-
-        self.processor.open()
-        ok, jpeg = self.processor.get_frame()
-
         self.assertFalse(ok)
         self.assertIsNone(jpeg)
 
-    @patch('src.Classes.frame_processor.cv2.VideoCapture')
-    def test_frame_generator(self, mock_VideoCapture):
-        """
-        The frame_generator should yield JPEG frames in MJPEG multipart format
-        until read() returns False. We simulate:
-        - one read for open(),
-        - two successful reads for generator,
-        - one final False to stop iteration.
-        """
-        mock_vc = MagicMock()
-        mock_vc.isOpened.return_value = True
-        mock_vc.read.side_effect = [
-            (True, self.sample_frame),  # open()
-            (True, self.sample_frame),  # first yield
-            (True, self.sample_frame),  # second yield
-            (False, None)               # stop
-        ]
-        mock_VideoCapture.return_value = mock_vc
+    def test_get_frame_returns_jpeg_if_successful(self):
+        self.processor.running = True
+        self.processor.frame = self.sample_frame
+        ok, jpeg = self.processor.get_frame()
+        self.assertTrue(ok)
+        self.assertTrue(jpeg.startswith(b'\xff\xd8') and jpeg.endswith(b'\xff\xd9'))
 
-        self.processor.open()
-        frames = list(self.processor.frame_generator())
+    def test_get_frame_returns_false_if_encoding_fails(self):
+        with patch('src.Classes.frame_processor.cv2.imencode', return_value=(False, None)):
+            self.processor.running = True
+            self.processor.frame = self.sample_frame
+            ok, jpeg = self.processor.get_frame()
+            self.assertFalse(ok)
+            self.assertIsNone(jpeg)
 
-        # Should produce exactly two frames before stopping
-        self.assertEqual(len(frames), 2)
-        for frame_bytes in frames:
-            # Each chunk must start with the multipart boundary and headers
-            self.assertTrue(frame_bytes.startswith(b'--frame\r\n'))
-            self.assertIn(b'Content-Type: image/jpeg\r\n\r\n', frame_bytes)
+    def test_frame_generator_yields_and_releases(self):
+        self.processor.running = True
+
+        sequence = [(True, b'image1'), (True, b'image2')]
+        self.processor.get_frame = MagicMock(side_effect=sequence + [Exception("stop")])
+
+        gen = self.processor.frame_generator()
+
+        frame1 = next(gen)
+        self.assertIn(b'image1', frame1)
+        frame2 = next(gen)
+        self.assertIn(b'image2', frame2)
+
+        with self.assertRaises(Exception):
+            next(gen)
+
+        self.assertFalse(self.processor.running)
 
 if __name__ == '__main__':
     unittest.main()

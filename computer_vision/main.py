@@ -1,3 +1,5 @@
+from math import floor
+
 from flask import *
 import json
 #from src.Classes.frame_processor import *
@@ -66,14 +68,14 @@ def add_task():
     task = None
     if task_type == 'forward':
         duration = request_body.get('duration')
-        if duration is None:
+        if duration is None or type(duration) not in [int, float]:
             task = TaskForward()
         else:
             task = TaskForward(duration=duration)
 
     elif task_type == 'turn':
         angle = request_body.get('angle')
-        if angle is None:
+        if angle is None or type(angle) not in [int, float]:
             task = TaskTurn()
         else:
             task = TaskTurn(angle=angle)

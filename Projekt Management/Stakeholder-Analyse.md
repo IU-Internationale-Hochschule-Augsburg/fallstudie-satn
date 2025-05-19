@@ -49,5 +49,5 @@ Entwicklung einer geeigneten Engagement-Strategie:
 | --- | --- | --- |
 | hoher Einfluss,<br>hohes Interesse | **aktiv einbinden** | - volle Beteiligung sicherstellen<br>- regelmäßgige Gespräche<br>- Einbindung in Entscheidungsprozesse<br>- Prioritäten und Bedenken berücksichtigen |
 | hoher Einfluss,<br>niedriges Interesse | **zufriedenstellen** | - regelmäßig informieren<br>- Zufriedenheit sicherstellen<br>- nicht mit Details langweilen<br>- auf spezifische Interessen eingehen |
-| hoher Einfluss,<br>hohes Interesse | **informiert halten** | - regelmäßig informieren<br>- Feedback einholen<br>- als Unterstützer/Experten einbinden<br>- bei Detailfragen konsultieren |
-| hoher Einfluss,<br>niedriges Interesse | **minimal betreuen** | - beobachten<br>- minimaler Kommunikationsaufwand<br>- keine Überkommunikation<br>- bei Bedarf informieren |
+| niedriger Einfluss,<br>hohes Interesse | **informiert halten** | - regelmäßig informieren<br>- Feedback einholen<br>- als Unterstützer/Experten einbinden<br>- bei Detailfragen konsultieren |
+| niedriger Einfluss,<br>niedriges Interesse | **minimal betreuen** | - beobachten<br>- minimaler Kommunikationsaufwand<br>- keine Überkommunikation<br>- bei Bedarf informieren |

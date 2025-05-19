@@ -140,6 +140,15 @@
         duration.style.display = "none";
     })
     document.getElementById("send-button").addEventListener("click", async function () {
+        let type
+        if (forwardInput.checked) {
+            type = "forward"
+        } else if (turnInput.checked) {
+            type = "turn"
+        } else {
+            return
+        }
+
         let request = new Request(
             "/task",
             {
@@ -148,7 +157,7 @@
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    type: forwardInput.value,
+                    type: type,
                     duration: document.getElementById("duration-input").value,
                     angle: document.getElementById("angle-input").value
                 })

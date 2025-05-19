@@ -18,6 +18,36 @@ const int port = 5000;
 unsigned long lastRequestTime = 0;
 const long requestInterval = 10000;  // Intervall für Anfragen (in ms)
 
+void turnOnSpot(int angleInt) {
+  // Gültigkeit prüfen
+  if (angleInt < -360 || angleInt > 360) {
+    Serial.println("Ungültiger Winkel!");
+    return;
+  }
+
+  // Drehrichtung bestimmen
+  int leftSpeed = 0;
+  int rightSpeed = 0;
+
+  if (angleInt > 0) {
+    // Rechtsdrehung
+    leftSpeed = -255;
+    rightSpeed = 255;
+  } else if (angleInt < 0) {
+    // Linksdrehung
+    leftSpeed = 255;
+    rightSpeed = -255;
+  } else {
+    return; // Kein Drehen nötig
+  }
+
+  int duration = round(abs(angleInt) * 4.18);  // ms = Winkel * Kalibrierwert
+
+  motors.setSpeeds(leftSpeed, rightSpeed);
+  delay(duration);
+  motors.setSpeeds(0, 0);
+}
+
 void setup() {
   Serial.begin(9600);
 
@@ -49,7 +79,7 @@ void loop() {
       Serial.println("Verbunden mit Server");
 
       // HTTP-GET-Anfrage an /task/turn senden
-      client.print("GET /task/turn HTTP/1.1\r\n");
+      client.print("GET /task HTTP/1.1\r\n");
       client.print("Host: ");
       client.print(server);
       client.print(":");
@@ -99,8 +129,7 @@ void loop() {
 
       if (type == "forward") {
         // Dauer des Fahren auslesen
-        String durationStr = (const char*) myObject["duration"];
-        int duration = durationStr.toInt();
+        int duration = (int) myObject["duration"];
 
         Serial.print("Dauer: ");
         Serial.println(duration);
@@ -113,17 +142,15 @@ void loop() {
 
       } else if (type == "turn") {
         // Winkel auslesen
-        String angleStr = (const char*) myObject["angle"];
-        int angle = angleStr.toInt();
+        float angle = (double) myObject["angle"];
+        int angleInt = (int) angle;  // falls du später int brauchst
+
 
         Serial.print("Winkel: ");
         Serial.println(angle);
 
         // Drehen auf der Stelle
-        motors.setM1Speed(1000);
-        motors.setM2Speed(-1000);
-        delay(angle);
-        motors.setSpeeds(0, 0);
+        turnOnSpot(angleInt);
 
       } else {
         Serial.println("Unbekannter Typ!");

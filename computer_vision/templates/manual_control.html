@@ -159,7 +159,7 @@
                 body: JSON.stringify({
                     type: type,
                     duration: document.getElementById("duration-input").value,
-                    angle: document.getElementById("angle-input").value
+                    angle: parseInt(document.getElementById("angle-input").value),
                 })
             },
         );

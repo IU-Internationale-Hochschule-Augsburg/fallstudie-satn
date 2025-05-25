@@ -2,7 +2,7 @@
 #include <A4990MotorShield.h>
 #include <Arduino_JSON.h>
 
-// WLAN-Konfiguration
+// WLAN Konfiguration
 char ssid[] = "IU-Study";
 char pass[] = "studieren_an_der_IU";
 
@@ -11,7 +11,7 @@ A4990MotorShield motors;
 
 int status = WL_IDLE_STATUS;
 
-// IP und Port des Flask-Servers
+// IP und Port des Flask Servers
 const char* server = "7.32.120.137";
 const int port = 5000;
 

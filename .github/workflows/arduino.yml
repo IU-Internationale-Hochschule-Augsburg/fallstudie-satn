@@ -35,10 +35,10 @@ jobs:
 
     - name: Sketches aus roboter (ohne experiments) kompilieren
       run: |
-        find ./roboter -maxdepth 2 -name '*.ino' ! -path './Zumo/experiments/*' | while read sketch; do
+        find ./roboter -maxdepth 2 -name '*.ino' ! -path './roboter/experiments/*' | while read sketch; do
           echo "==> Prüfe $sketch"
           board="arduino:renesas_uno:unor4wifi"
-          echo "📦 Kompiliere $sketch mit Board $board"
+          echo "Kompiliere $sketch mit Board $board"
           sketch_dir=$(dirname "$sketch")
           arduino-cli compile --fqbn "$board" "$sketch_dir" || exit 1
         done

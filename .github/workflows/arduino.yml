@@ -1,46 +1,44 @@
 name: Compile Arduino Sketches
 
 on:
-  push:
-    branches:
-      - main
-      - roboter
+  workflow_dispatch:
   pull_request:
     branches:
       - main
       - roboter
 
 jobs:
-  test-arduino:
+  compile-all:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Repository auschecken
-        uses: actions/checkout@v3
-  
-      - name: Arduino CLI installieren
-        run: |
-          curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
-  
-      - name: Arduino CLI in PATH setzen
-        run: echo "${{ github.workspace }}/bin" >> $GITHUB_PATH
-  
-      - name: Arduino Core installieren
-        run: |
-          arduino-cli core update-index
-          arduino-cli core install arduino:renesas_uno
-  
-      - name: Arduino Libraries installieren
-        run: |
-          arduino-cli lib install R4HttpClient
-          arduino-cli lib install A4990MotorShield
-          arduino-cli lib install Arduino_JSON
-          arduino-cli lib install Zumo32U4
-  
-      - name: Alle Sketches in ./roboter kompilieren
-        run: |
-          for sketch in ./roboter/*; do
-            if [[ -d "$sketch" && -f "$sketch/$(basename "$sketch").ino" ]]; then
-              echo "Kompiliere $sketch"
-              arduino-cli compile --fqbn arduino:renesas_uno:unor4wifi "$sketch"
-            fi
-          done
+    - name: Repository auschecken
+      uses: actions/checkout@v3
+
+    - name: Arduino CLI installieren
+      run: |
+        curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
+
+    - name: Arduino CLI in PATH setzen
+      run: echo "${{ github.workspace }}/bin" >> $GITHUB_PATH
+
+    - name: Arduino Core installieren
+      run: |
+        arduino-cli core update-index
+        arduino-cli core install arduino:renesas_uno
+
+    - name: Arduino Libraries installieren
+      run: |
+        arduino-cli lib install R4HttpClient
+        arduino-cli lib install A4990MotorShield
+        arduino-cli lib install Arduino_JSON
+
+    - name: Sketches aus roboter (ohne experiments) kompilieren
+      run: |
+        find ./roboter -maxdepth 2 -name '*.ino' ! -path './Zumo/experiments/*' | while read sketch; do
+          echo "==> Prüfe $sketch"
+          board="arduino:renesas_uno:unor4wifi"
+          echo "📦 Kompiliere $sketch mit Board $board"
+          sketch_dir=$(dirname "$sketch")
+          arduino-cli compile --fqbn "$board" "$sketch_dir" || exit 1
+        done

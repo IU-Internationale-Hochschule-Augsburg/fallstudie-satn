@@ -2,9 +2,40 @@ from computer_vision.src.Classes.TaskPipeline.TaskForward import TaskForward
 from computer_vision.src.Classes.TaskPipeline.TaskTurn import TaskTurn
 import math
 
+last_start_position = None
+
 
 def get_next_task(positions):
-    pass
+    global last_start_position
+    for obj in positions.objects:
+        # check if there is an object that is getting pushed by zumo
+        if ((obj.xCoord - positions.zumo.xCoord) ** 2) + ((obj.yCoord - positions.zumo.yCoord) ** 2) <= (
+                (positions.zumo.xCoord + positions.zumo.xCoord) * .55) ** 2:
+            #there is an object very close to zumo
+            pushing_dest = get_pushing_dest(positions.zumo, obj)
+            if positions.zumo.xCoord == pushing_dest.xCoord and positions.zumo.yCoord == pushing_dest.yCoord and (
+                    pushing_dest.xDirec / pushing_dest.yDirec) % (positions.zumo.xDirec / positions.zumo.yDirec) == 0:
+                #zumo is on pushing destination
+                return TaskForward()
+            #zumo is not on pushing destination
+            return get_task_for_destination(positions.zumo ,pushing_dest)
+
+    #check if zumo is on last init position
+    if last_start_position is None or (positions.zumo.xCoord == last_start_position.xCoord and positions.zumo.yCoord == last_start_position.yCoord and (
+            last_start_position.xDirec / last_start_position.yDirec) % (positions.zumo.xDirec / positions.zumo.yDirec) == 0):
+        #find obj the farthest away from under right corner
+        target = min(positions.objects, key=lambda d: d["xCoord"] + d["yCoord"])
+        last_start_position = get_pushing_dest(positions.zumo, target)
+    #drive back to last init pos
+    return get_task_for_destination(positions.zumo, last_start_position)
+
+def get_pushing_dest(zumo_pos, object_dest):
+    pushing_dest = {} #todo: replace with object
+    pushing_dest.xDirec = 1920 - object_dest.XCoord
+    pushing_dest.yDirec = 1080 - object_dest.YCoord
+    pushing_dest.xCoord = object_dest.xCoord - zumo_pos.xVect
+    pushing_dest.yCoord = object_dest.yCoord - ((pushing_dest.yDirec / pushing_dest.xDirec) * zumo_pos.yVect)
+    return pushing_dest
 
 
 def get_task_for_destination(zumo_pos, destination):

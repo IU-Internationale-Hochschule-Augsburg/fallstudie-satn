@@ -41,7 +41,7 @@ void turnOnSpot(int angleInt) {
     return; // Kein Drehen nötig
   }
 
-  int duration = round(abs(angleInt) * 4.18);  // ms = Winkel * Kalibrierwert
+  int duration = round(abs(angleInt) * 4.31);  // ms = Winkel * Kalibrierwert
 
   motors.setSpeeds(leftSpeed, rightSpeed);
   delay(duration);
@@ -79,7 +79,7 @@ void loop() {
       Serial.println("Verbunden mit Server");
 
       // HTTP-GET-Anfrage an /task/turn senden
-      client.print("GET /task HTTP/1.1\r\n");
+      client.print("GET /task/turn HTTP/1.1\r\n");
       client.print("Host: ");
       client.print(server);
       client.print(":");
@@ -129,7 +129,8 @@ void loop() {
 
       if (type == "forward") {
         // Dauer des Fahren auslesen
-        int duration = (int) myObject["duration"];
+        String durationStr = (const char*) myObject["duration"];
+        int duration = durationStr.toInt();
 
         Serial.print("Dauer: ");
         Serial.println(duration);
@@ -142,15 +143,14 @@ void loop() {
 
       } else if (type == "turn") {
         // Winkel auslesen
-        float angle = (double) myObject["angle"];
-        int angleInt = (int) angle;  // falls du später int brauchst
-
+        String angleStr = (const char*) myObject["angle"];
+        float angle = angleStr.toFloat();
 
         Serial.print("Winkel: ");
         Serial.println(angle);
 
         // Drehen auf der Stelle
-        turnOnSpot(angleInt);
+        turnOnSpot(angle);
 
       } else {
         Serial.println("Unbekannter Typ!");

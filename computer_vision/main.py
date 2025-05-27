@@ -1,13 +1,14 @@
 from flask import Flask, Response
 from flask import render_template
 import json
-#from src.Classes.frame_processor import *
+from src.Classes.frame_processor import *
 from src.Classes.TaskPipeline.TaskPipeline import *
 from src.Classes.TaskPipeline.TaskForward import *
 from src.Classes.TaskPipeline.TaskTurn import *
+from src.Classes.ObjectDetection.object_detection import *
 
 app = Flask(__name__)
-#camera = FrameProcessor()
+camera = FrameProcessor()
 
 
 @app.route('/info')

@@ -1,4 +1,4 @@
-from flask import Flask, Response
+from flask import Flask, Response, request
 from flask import render_template
 import json
 #from src.Classes.frame_processor import *

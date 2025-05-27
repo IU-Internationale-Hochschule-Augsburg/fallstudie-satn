@@ -1,5 +1,5 @@
-from src.Classes.TaskPipeline.Task import Task
-from src.Classes.TaskPipeline.TaskList import TaskList
+from computer_vision.src.Classes.TaskPipeline.Task import Task
+from computer_vision.src.Classes.TaskPipeline.TaskList import TaskList
 
 class TaskPipeline():
     """

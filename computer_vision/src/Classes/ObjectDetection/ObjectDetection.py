@@ -1,7 +1,9 @@
 import cv2
 import itertools
 import numpy as np
-from src.Classes.FrameProcessor import FrameProcessor
+from computer_vision.src.Classes.FrameProcessor import FrameProcessor
+camera = FrameProcessor()
+
 
 class ObjectDetection:
     def __init__(self):
@@ -199,7 +201,7 @@ class ObjectDetection:
             'height': h
         }
 
-    def handleObjectDetectionFromSource(self):
+    def handle_object_detection_from_source(self):
         ok, jpeg_bytes = camera.get_frame()  # get_frame gibt JPEG-Bytes zurück
 
         if ok and jpeg_bytes is not None:
@@ -213,9 +215,11 @@ class ObjectDetection:
             gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
             # 4. An crop_image übergeben
-            cropped = detector.crop_image(gray_img)
+            od = ObjectDetection()
+            cropped = od.crop_image(gray_img)
 
             return {
                 'zumo': self.getZumoPosition(cropped),
-                'objects': self.getObjects(cropped)
+                'objects': self.get_object_position(cropped)
             }
+        return None

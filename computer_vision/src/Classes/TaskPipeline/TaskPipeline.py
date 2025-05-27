@@ -1,5 +1,8 @@
+from computer_vision.src.Classes.ObjectDetection.ObjectDetection import ObjectDetection
 from computer_vision.src.Classes.TaskPipeline.Task import Task
 from computer_vision.src.Classes.TaskPipeline.TaskList import TaskList
+from computer_vision.src.Utils.pathfinding import get_next_task
+
 
 class TaskPipeline():
     """
@@ -24,4 +27,9 @@ class TaskPipeline():
 
         :return: The dequeued Task, or None if none exist
         """
-        return self.taskList.pop_task()
+        retrieval = self.taskList.pop_task()
+        if retrieval is None:
+            od = ObjectDetection()
+            objects = od.handle_object_detection_from_source()
+            retrieval = get_next_task(objects)
+        return retrieval

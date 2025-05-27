@@ -37,5 +37,8 @@ COPY . .
 # Use Port 5000
 EXPOSE 5000
 
+# Label Image for Pipeline
+LABEL org.opencontainers.image.source="https://github.com/IU-Internationale-Hochschule-Augsburg/fallstudie-satn"
+
 # Run application
 CMD ["python", "main.py"]

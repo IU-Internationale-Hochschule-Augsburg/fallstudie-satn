@@ -6,18 +6,18 @@ class ObjectDetection:
     def __init__(self):
         pass
 
-    def getZumoPosition(self, img, t=175):
+    def getZumoPosition(self, img, t=175, only_contours=False):
         inverted = cv2.bitwise_not(img)
-        grayTone = cv2.cvtColor(inverted, cv2.COLOR_BGR2GRAY)
 
-        blurred = cv2.GaussianBlur(grayTone, (5, 5), 0)
+        blurred = cv2.GaussianBlur(inverted, (5, 5), 0)
 
         _, thresh = cv2.threshold(blurred, t, 255, cv2.THRESH_BINARY)
         contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
         sorted_contours = sorted(contours, key=cv2.contourArea, reverse=True)
         top_contours = sorted_contours[:5]
-
+        if only_contours:
+            return top_contours
         best_pair = None
         best_score = 0.0
 
@@ -39,7 +39,7 @@ class ObjectDetection:
             if score < best_score:
                 best_pair = (rect1, rect2)
                 best_score = score
-        print(best_pair)
+
         x1, y1, w1, h1 = cv2.boundingRect(best_pair[0])
         x2, y2, w2, h2 = cv2.boundingRect(best_pair[1])
 
@@ -52,10 +52,13 @@ class ObjectDetection:
 
 
     def get_object_position(self, img, t=115, min_area=500, only_contours=False):
+        zumo_data = self.getZumoPosition(img)
         _, tresh = cv2.threshold(img, t, 255, cv2.THRESH_BINARY_INV)
         contours, _ = cv2.findContours(tresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
         filterd_contours = [cnt for cnt in contours if cv2.contourArea(cnt) > min_area]
+        zumo_x, zumo_y, zumo_w, zumo_h = zumo_data.values()
+
 
         if only_contours:
             return filterd_contours
@@ -63,12 +66,17 @@ class ObjectDetection:
         objects = []
         for cnt in filterd_contours:
             x, y, w, h = cv2.boundingRect(cnt)
+            if abs(x-zumo_x) < w and abs(y-zumo_y) < h:
+                continue
+
             objects.append({
                 'xCoord':x,
                 'yCoord': y,
                 'dx': w,
                 'dy': h
             })
+
+
         return objects
 
 
@@ -129,13 +137,3 @@ class ObjectDetection:
             'width': w,
             'height': h
         }
-
-    def demo_object_detection(self,img):
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        cropped = self.crop_image(gray)
-        contours = self.get_object_position(cropped, only_contours=True)
-
-        cv2.drawContours(cropped, contours, -1, (255, 0, 0), 3)
-        cv2.imshow("Object Detection", cropped)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()

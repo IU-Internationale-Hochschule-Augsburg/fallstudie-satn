@@ -17,12 +17,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Docker Metadata
+      - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: ghcr.io/iu-internationale-hochschule-augsburg/fallstudie-satn
-      
+          tags: |
+            type=ref,event=branch
+            type=ref,event=tag
+            type=sha
+
       - name: Login to GHCR
         uses: docker/login-action@v3
         with:

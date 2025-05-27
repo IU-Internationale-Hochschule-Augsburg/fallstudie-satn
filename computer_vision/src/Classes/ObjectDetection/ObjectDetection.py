@@ -1,6 +1,7 @@
 import cv2
 import itertools
 import numpy as np
+from src.Classes.FrameProcessor import FrameProcessor
 
 class ObjectDetection:
     def __init__(self):
@@ -197,3 +198,24 @@ class ObjectDetection:
             'width': w,
             'height': h
         }
+
+    def handleObjectDetectionFromSource(self):
+        ok, jpeg_bytes = camera.get_frame()  # get_frame gibt JPEG-Bytes zurück
+
+        if ok and jpeg_bytes is not None:
+            # 1. Bytes zurück in ein NumPy-Array umwandeln
+            jpg_array = np.frombuffer(jpeg_bytes, dtype=np.uint8)
+
+            # 2. JPEG-Array in ein Bild dekodieren (BGR)
+            img = cv2.imdecode(jpg_array, cv2.IMREAD_COLOR)
+
+            # 3. In Graustufenbild umwandeln
+            gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+            # 4. An crop_image übergeben
+            cropped = detector.crop_image(gray_img)
+
+            return {
+                'zumo': self.getZumoPosition(cropped),
+                'objects': self.getObjects(cropped)
+            }

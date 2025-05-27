@@ -1,8 +1,9 @@
-#include <Zumo32U4.h>
+#include <WiFiS3.h>
+#include <A4990MotorShield.h>
+#include <Arduino_JSON.h>
 #include "functions.h"
 
-Zumo32U4Motors motors;
-Zumo32U4Encoders encoders;
+A4990MotorShield motors;
 
 void setup() {
   // put your setup code here, to run once:

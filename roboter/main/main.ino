@@ -1,7 +1,6 @@
 #include <WiFiS3.h>
 #include <A4990MotorShield.h>
 #include <Arduino_JSON.h>
-#include "functions.h"
 
 A4990MotorShield motors;
 

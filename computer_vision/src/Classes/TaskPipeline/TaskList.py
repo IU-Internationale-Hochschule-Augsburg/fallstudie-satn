@@ -1,4 +1,4 @@
-from computer_vision.src.Classes.TaskPipeline.Task import Task
+from src.Classes.TaskPipeline.Task import Task
 import pickle
 from collections import deque
 

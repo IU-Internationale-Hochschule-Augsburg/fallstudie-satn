@@ -1,7 +1,7 @@
-from computer_vision.src.Classes.ObjectDetection.ObjectDetection import ObjectDetection
-from computer_vision.src.Classes.TaskPipeline.Task import Task
-from computer_vision.src.Classes.TaskPipeline.TaskList import TaskList
-from computer_vision.src.Utils.pathfinding import get_next_task
+from src.Classes.ObjectDetection.ObjectDetection import ObjectDetection
+from src.Classes.TaskPipeline.Task import Task
+from src.Classes.TaskPipeline.TaskList import TaskList
+from src.Utils.pathfinding import get_next_task
 
 
 class TaskPipeline():

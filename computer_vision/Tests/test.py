@@ -1,7 +1,5 @@
 import cv2
-from src.Classes.ObjectDetection.ObjectDetection import ObjectDetection
-from computer_vision.src.Classes.ObjectDetection.object_detection import ObjectDetection
-from computer_vision.src.Utils.pathfinding import get_next_task
+from src.Classes.ObjectDetection.object_detection import ObjectDetection
 
 img = cv2.imread('img2.jpg')
 cv2.imshow('img', img)

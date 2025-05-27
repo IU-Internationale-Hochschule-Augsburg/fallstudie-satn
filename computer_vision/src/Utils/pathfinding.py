@@ -1,5 +1,5 @@
-from computer_vision.src.Classes.TaskPipeline.TaskForward import TaskForward
-from computer_vision.src.Classes.TaskPipeline.TaskTurn import TaskTurn
+from src.Classes.TaskPipeline.TaskForward import TaskForward
+from src.Classes.TaskPipeline.TaskTurn import TaskTurn
 import math
 
 

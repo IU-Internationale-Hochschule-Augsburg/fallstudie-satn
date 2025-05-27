@@ -1,7 +1,7 @@
 import cv2
 import itertools
 import numpy as np
-from computer_vision.src.Classes.FrameProcessor import FrameProcessor
+from src.Classes.FrameProcessor import FrameProcessor
 camera = FrameProcessor()
 
 

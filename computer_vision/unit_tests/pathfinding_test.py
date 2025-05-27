@@ -1,6 +1,6 @@
 import unittest
 
-from computer_vision.src.Utils.pathfinding import get_task_for_destination, get_pushing_dest, get_next_task, \
+from src.Utils.pathfinding import get_task_for_destination, get_pushing_dest, get_next_task, \
     LastStartPosition, LastZumoPos
 
 

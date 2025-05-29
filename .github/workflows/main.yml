@@ -1,4 +1,4 @@
-name: Unittests
+name: Unittests + OWASP ZAP Scan
 
 on:
   pull_request:
@@ -16,18 +16,11 @@ jobs:
     steps:
       - name: Repository auschecken
         uses: actions/checkout@v3
-        
+
       - name: System Dependencies installieren
         run: |
           sudo apt-get update
-          # libcap-dev needed by python-prctl
-          sudo apt-get install -y libcap-dev
-          # libcamera C headers and shared libs
-          sudo apt-get install -y libcamera-dev
-          # Python 3 bindings for libcamera
-          sudo apt-get install -y python3-libcamera
-          # Optional: libcamera CLI tools
-          sudo apt-get install -y libcamera-tools
+          sudo apt-get install -y libcap-dev libcamera-dev python3-libcamera libcamera-tools
 
       - name: Python einrichten
         uses: actions/setup-python@v4
@@ -36,7 +29,39 @@ jobs:
 
       - name: Python Abhängigkeiten installieren
         run: pip install -r ./computer_vision/requirements.txt
-        working-directory: ${{ github.workspace }}
-        
+
       - name: Unittests ausführen
         run: cd ./computer_vision && python -m unittest discover -s ./unit_tests -p "*_test.py"
+
+  zap_scan:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Repository auschecken
+        uses: actions/checkout@v3
+
+      - name: Python einrichten
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.13'
+
+      - name: Abhängigkeiten installieren
+        run: pip install -r ./computer_vision/requirements.txt
+
+      - name: Flask-App starten (im Hintergrund)
+        run: |
+          nohup python ./computer_vision/app.py &> flask.log &
+          sleep 10  # Warten bis der Server auf Port 5000 läuft
+
+      - name: ZAP Scan starten
+        run: |
+          docker pull owasp/zap2docker-stable
+          docker run -v $(pwd):/zap/wrk/:rw --network="host" owasp/zap2docker-stable zap-baseline.py \
+            -t http://localhost:5000 \
+            -r zap-report.html || true  # Fehler ignorieren, damit Build nicht wegen Warnungen fehlschlägt
+
+      - name: ZAP Report als Artefakt hochladen
+        uses: actions/upload-artifact@v3
+        with:
+          name: zap-report
+          path: zap-report.html

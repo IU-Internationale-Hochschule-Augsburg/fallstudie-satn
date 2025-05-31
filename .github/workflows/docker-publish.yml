@@ -5,8 +5,8 @@ on:
     branches: [main, roboter, computer_vision]
     paths:
       - 'Dockerfile'
-      - 'Computer_Vision/**'
-      - 'Roboter/**'
+      - 'computer_vision/**'
+      - 'roboter/**'
 
 jobs:
   build-and-push:

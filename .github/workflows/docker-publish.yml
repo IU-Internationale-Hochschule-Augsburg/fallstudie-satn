@@ -1,12 +1,14 @@
 name: Docker Image CI
 
 on:
-  push:
-    branches: [main, roboter, computer_vision]
-    paths:
-      - 'Dockerfile'
-      - 'computer_vision/**'
-      - 'roboter/**'
+  pull_request:
+    branches:
+      - main
+      - computer_vision
+    types:
+      - opened
+      - synchronize
+      - reopened
 
 jobs:
   build-and-push:

@@ -37,10 +37,7 @@
             background-color: transparent;
             border: 1px solid lightgray;
             border-radius: 5px;
-<<<<<<< HEAD
             font-size: large;
-=======
->>>>>>> 491dc710a326bb3487d3327d07a61562b077b957
         }
 
         #send-button:hover {
@@ -48,23 +45,21 @@
             cursor: pointer;
         }
 
-<<<<<<< HEAD
         #send-button:active {
             box-shadow: inset 0 0 2px 0 aqua;
         }
 
         #angle input, #duration input {
             background: transparent;
-=======
+        }
+
         #angle input, #duration input {
->>>>>>> 491dc710a326bb3487d3327d07a61562b077b957
             border: 1px solid lightgray;
             padding: 2px;
             border-radius: 10px;
             width: calc(100% - 4px);
         }
 
-<<<<<<< HEAD
         #preset-actions {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
@@ -78,9 +73,6 @@
             box-shadow: inset 0 0 2px 0 aqua;
             cursor: pointer;
         }
-
-=======
->>>>>>> 491dc710a326bb3487d3327d07a61562b077b957
     </style>
 </head>
 <body>
@@ -110,7 +102,6 @@
             <h3><label for="angle-input">Angle</label></h3>
             <input id="angle-input">
         </div>
-<<<<<<< HEAD
         <h3>Presets</h3>
         <div id="preset-actions">
             <button id="preset-left">
@@ -123,8 +114,6 @@
                 Turn right
             </button>
         </div>
-=======
->>>>>>> 491dc710a326bb3487d3327d07a61562b077b957
     </div>
     <div>
         <h2>Response</h2>
@@ -138,13 +127,10 @@
 </div>
 <script>
     duration = document.getElementById("duration")
-<<<<<<< HEAD
     durationInput = document.getElementById("duration-input")
     angle = document.getElementById("angle")
     angleInput = document.getElementById("angle-input")
-=======
     angle = document.getElementById("angle")
->>>>>>> 491dc710a326bb3487d3327d07a61562b077b957
     forwardInput = document.getElementById("forward-input")
     turnInput = document.getElementById("turn-input")
 
@@ -157,7 +143,6 @@
         duration.style.display = "none";
     })
     document.getElementById("send-button").addEventListener("click", async function () {
-<<<<<<< HEAD
         let type
         if (forwardInput.checked) {
             type = "forward"
@@ -167,8 +152,6 @@
             return
         }
 
-=======
->>>>>>> 491dc710a326bb3487d3327d07a61562b077b957
         let request = new Request(
             "/task",
             {
@@ -177,15 +160,12 @@
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-<<<<<<< HEAD
                     type: type,
                     duration: document.getElementById("duration-input").value,
                     angle: parseInt(document.getElementById("angle-input").value),
-=======
                     type: forwardInput.value,
                     duration: document.getElementById("duration-input").value,
                     angle: document.getElementById("angle-input").value
->>>>>>> 491dc710a326bb3487d3327d07a61562b077b957
                 })
             },
         );
@@ -193,7 +173,6 @@
         console.log(response)
         document.getElementById("response-container").innerHTML = response.status + '<br>' + await response.text()
     })
-<<<<<<< HEAD
 
     document.getElementById("preset-left").addEventListener("click", function () {
         angleInput.value = -90
@@ -215,8 +194,6 @@
         turnInput.checked = true
         turnInput.dispatchEvent(new Event("change"))
     })
-=======
->>>>>>> 491dc710a326bb3487d3327d07a61562b077b957
 </script>
 </body>
 </html>

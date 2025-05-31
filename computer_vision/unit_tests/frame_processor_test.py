@@ -5,7 +5,7 @@ import cv2
 import threading
 
 # Import the FrameProcessor class
-from src.Classes.frame_processor import FrameProcessor, Picamera2
+from src.Classes.FrameProcessor import FrameProcessor, Picamera2
 
 class TestFrameProcessor(unittest.TestCase):
     def setUp(self):

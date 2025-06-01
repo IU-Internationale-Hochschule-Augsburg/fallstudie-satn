@@ -22,6 +22,13 @@ class LastZumoPos:
 
 
 def get_zumo_direction(zumo_pos: dict):
+    """
+    Gets direction of Zumo based on last and current position
+
+    :param zumo_pos: zumo position data
+    :return: zumo position data including direction
+    :rtype: dict
+    """
     if LastZumoPos.data.get("xCoord") is None:
         LastZumoPos.data["xCoord"] = zumo_pos.get("xCoord")
         LastZumoPos.data["yCoord"] = zumo_pos.get("yCoord")

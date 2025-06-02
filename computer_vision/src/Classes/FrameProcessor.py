@@ -88,11 +88,7 @@ class FrameProcessor:
         if frame is None:
             return False, None
         processed = self._process_frame(frame)
-        print(type(processed))
-        ok, jpeg = cv2.imencode('.jpg', frame)
-        if not ok:
-            return False, None
-        return True, jpeg.tobytes()
+        return True, processed
 
     def frame_generator(self):
         """

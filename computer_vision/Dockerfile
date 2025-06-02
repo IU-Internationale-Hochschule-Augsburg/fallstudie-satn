@@ -19,10 +19,11 @@ RUN apt-get update && apt-get install -y \
     libcap-dev
 
 # Install runtime dependencies
-RUN apt-get update && apt-get install \
-    libjpeg \
-    zlib \
-    openblas
+RUN apt-get update && apt-get install -y \
+    libjpeg-dev \
+    zlib1g-dev \
+    libopenblas-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy & install requirements with build isolation
 COPY requirements.txt .

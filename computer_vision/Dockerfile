@@ -20,7 +20,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install runtime dependencies
-RUN apt-get install --no-cache \
+RUN apt-get update & apt-get install rm -rf /var/lib/apt/lists/*
     libjpeg \
     zlib \
     openblas

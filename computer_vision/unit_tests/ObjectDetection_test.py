@@ -1,7 +1,6 @@
 import unittest
 from unittest.mock import patch, MagicMock
 import numpy as np
-import cv2
 from src.Classes.ObjectDetection.ObjectDetection import ObjectDetection  # dein Dateiname hier
 
 class TestObjectDetection(unittest.TestCase):

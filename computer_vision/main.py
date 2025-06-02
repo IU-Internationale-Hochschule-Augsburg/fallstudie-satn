@@ -1,10 +1,9 @@
 from flask import Flask, Response, request
 from flask import render_template
 import json
-from src.Classes.FrameProcessor import *
-from src.Classes.TaskPipeline.TaskPipeline import *
 from src.Classes.TaskPipeline.TaskForward import *
 from src.Classes.TaskPipeline.TaskTurn import *
+from src.Classes.TaskPipeline.TaskPipeline import *
 from src.Classes.ObjectDetection.ObjectDetection import *
 
 app = Flask(__name__)

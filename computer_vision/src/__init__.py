@@ -1,2 +1,2 @@
-from . import Utils
 from . import Classes
+from . import Utils

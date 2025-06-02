@@ -33,7 +33,7 @@ def data():
 
 @app.route('/videoCapture')
 def video_capture():
-    """Direkte MJPEG-Ausgabe aus der Kamera."""
+    """Direkte MJPEG-Ausgabe aus der Kamera (NumPy-Array intern, JPEG erst hier)."""
     try:
         camera.open()
     except RuntimeError as e:
@@ -43,15 +43,28 @@ def video_capture():
     def generate():
         while True:
             try:
-                ok, jpeg = camera.get_frame()
-                if not ok:
+                ok, gray_frame = camera.get_frame()
+                if not ok or gray_frame is None:
                     continue
 
+                # Optional: Konturen in das Frame einzeichnen
+                # Wenn ihr obj‐Erkennung direkt auf dem Grauwert-Array durchführen wollt:
                 od = ObjectDetection()
-                obj_contours = od.get_object_position(jpeg, only_contours=True )
-                cv2.drawContours(jpeg, obj_contours, -1, 255, 3)
+                # Beispiel: nur Konturen abfragen (liefert Liste[np.ndarray])
+                contours = od.get_object_position(gray_frame, only_contours=True)
+                # Um Konturen sichtbar zu machen, müssen wir ein Farb-Bild erzeugen:
+                color_frame = cv2.cvtColor(gray_frame, cv2.COLOR_GRAY2BGR)
+                cv2.drawContours(color_frame, contours, -1, (0, 255, 0), 2)
+
+                # Jetzt color_frame (BGR uint8) in JPEG kodieren
+                success, jpeg_buf = cv2.imencode('.jpg', color_frame)
+                if not success:
+                    continue
+                jpeg_bytes = jpeg_buf.tobytes()
+                print(od.handle_object_detection_from_source())
+                # MJPEG-Frame senden
                 yield (b'--frame\r\n'
-                       b'Content-Type: image/jpeg\r\n\r\n' + jpeg + b'\r\n')
+                       b'Content-Type: image/jpeg\r\n\r\n' + jpeg_bytes + b'\r\n')
             except Exception as e:
                 app.logger.error(f"Fehler beim Streamen: {e}")
                 break

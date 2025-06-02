@@ -202,22 +202,10 @@ class ObjectDetection:
         }
 
     def handle_object_detection_from_source(self):
-        ok, jpeg_bytes = camera.get_frame()  # get_frame gibt JPEG-Bytes zurück
+        ok, gray_frame = camera.get_frame()  # get_frame gibt JPEG-Bytes zurück
 
-        if ok and jpeg_bytes is not None:
-            # 1. Bytes zurück in ein NumPy-Array umwandeln
-            jpg_array = np.frombuffer(jpeg_bytes, dtype=np.uint8)
-
-            # 2. JPEG-Array in ein Bild dekodieren (BGR)
-            img = cv2.imdecode(jpg_array, cv2.IMREAD_COLOR)
-
-            # 3. In Graustufenbild umwandeln
-            gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-            # 4. An crop_image übergeben
-            od = ObjectDetection()
+        if ok and gray_frame is not None:
             cropped = od.crop_image(gray_img)
-
             return {
                 'zumo': self.getZumoPosition(cropped),
                 'objects': self.get_object_position(cropped)

@@ -23,10 +23,10 @@ class ObjectDetection:
         """
 
         # Invert image colors to highlight bright areas (assuming dark background)
-        inverted = cv2.bitwise_not(img)
+        #inverted = cv2.bitwise_not(img)
 
         # ERROR: The variable 'blurred' is not defined, this should probably be 'inverted'
-        _, thresh = cv2.threshold(inverted, t, 255, cv2.THRESH_BINARY)
+        _, thresh = cv2.threshold(img, t, 255, cv2.THRESH_BINARY)
 
         # Find external contours in the thresholded image
         contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)

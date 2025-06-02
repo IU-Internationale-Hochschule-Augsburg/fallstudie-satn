@@ -1,25 +1,26 @@
-# Use official Python-Alpine image
+# Use official Python-slim image (Debian)
 FROM python:3.13-slim
 
 # Set working directory
 WORKDIR /app
 
 # Install build dependencies
-RUN apk add --no-cache --virtual .build-deps \
-    build-base \
+RUN apt-get update && apt-get install -y \
+    build-essential \
     libffi-dev \
-    openssl-dev \
-    libjpeg-turbo-dev \
-    openblas-dev \
+    libssl-dev \
+    libjpeg-dev \
+    libopenblas-dev \
     cmake \
     make \
     nasm \
     yasm \
-    linux-headers \
-    libcap-dev
+    linux-headers-amd64 \
+    libcap-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install runtime dependencies
-RUN apk add --no-cache \
+RUN apt-get --no-cache \
     libjpeg \
     zlib \
     openblas
@@ -29,7 +30,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir --use-pep517 --isolated -r requirements.txt
 
 # Cleanup build dependencies
-RUN apk del .build-deps
+RUN apt-get remove -y .build-deps
 
 # Copy entire computer_vision directory
 COPY . .

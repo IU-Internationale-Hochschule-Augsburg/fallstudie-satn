@@ -15,7 +15,7 @@ RUN apt-get update && apt-get install -y \
     make \
     nasm \
     yasm \
-    linux-headers-amd64 \
+    linux-headers-arm64 \
     libcap-dev
 
 # Install runtime dependencies

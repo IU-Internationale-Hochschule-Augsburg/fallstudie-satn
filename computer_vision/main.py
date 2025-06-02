@@ -1,4 +1,5 @@
-from flask import *
+from flask import Flask, Response
+from flask import render_template
 import json
 #from src.Classes.frame_processor import *
 from src.Classes.TaskPipeline.TaskPipeline import *
@@ -66,14 +67,14 @@ def add_task():
     task = None
     if task_type == 'forward':
         duration = request_body.get('duration')
-        if duration is None:
+        if duration is None or type(duration) not in [int, float]:
             task = TaskForward()
         else:
             task = TaskForward(duration=duration)
 
     elif task_type == 'turn':
         angle = request_body.get('angle')
-        if angle is None:
+        if angle is None or type(angle) not in [int, float]:
             task = TaskTurn()
         else:
             task = TaskTurn(angle=angle)
@@ -93,8 +94,9 @@ def get_task():
     pipe = TaskPipeline()
     task = pipe.pop_task()
     if task is None:
-        return Response(status=500)
-    return Response(status=200, response =vars(task))
+        return Response(status=404)
+    print("returning task:",vars(task))
+    return Response(status=200, response=json.dumps(vars(task)), mimetype='application/json')
 
 @app.route('/manualControl', methods=['GET'])
 def manual_control():

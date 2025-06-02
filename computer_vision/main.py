@@ -5,6 +5,7 @@ from src.Classes.TaskPipeline.TaskForward import *
 from src.Classes.TaskPipeline.TaskTurn import *
 from src.Classes.TaskPipeline.TaskPipeline import *
 from src.Classes.ObjectDetection.ObjectDetection import *
+import cv2
 
 app = Flask(__name__)
 camera = FrameProcessor()
@@ -47,8 +48,8 @@ def video_capture():
                     continue
 
                 od = ObjectDetection()
-                obj_contours = od.get_object_position(jpg, only_contours=True )
-                print(obj_contours)
+                obj_contours = od.get_object_position(jpeg, only_contours=True )
+                cv2.drawContours(jpeg, obj_contours, -1, 255, 3)
                 yield (b'--frame\r\n'
                        b'Content-Type: image/jpeg\r\n\r\n' + jpeg + b'\r\n')
             except Exception as e:

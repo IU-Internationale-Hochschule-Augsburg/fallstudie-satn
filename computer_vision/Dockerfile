@@ -16,11 +16,10 @@ RUN apt-get update && apt-get install -y \
     nasm \
     yasm \
     linux-headers-amd64 \
-    libcap-dev \
-    && rm -rf /var/lib/apt/lists/*
+    libcap-dev
 
 # Install runtime dependencies
-RUN apt-get update & apt-get install rm -rf /var/lib/apt/lists/* \
+RUN apt-get update && apt-get install \
     libjpeg \
     zlib \
     openblas
@@ -30,7 +29,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir --use-pep517 --isolated -r requirements.txt
 
 # Cleanup build dependencies
-RUN apt-get remove -y .build-deps
+#  RUN apt-get remove -y .build-deps
 
 # Copy entire computer_vision directory
 COPY . .

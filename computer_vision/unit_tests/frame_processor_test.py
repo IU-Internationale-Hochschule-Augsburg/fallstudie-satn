@@ -14,7 +14,7 @@ class TestFrameProcessor(unittest.TestCase):
         self.sample_frame = np.ones((self.height, self.width, 3), dtype=np.uint8) * 127
         self.processor = FrameProcessor()
 
-        patcher = patch('src.Classes.frame_processor.Picamera2')
+        patcher = patch('src.Classes.FrameProcessor.Picamera2')
         self.mock_picam2_class = patcher.start()
         self.addCleanup(patcher.stop)
 
@@ -77,7 +77,7 @@ class TestFrameProcessor(unittest.TestCase):
         self.assertTrue(jpeg.startswith(b'\xff\xd8') and jpeg.endswith(b'\xff\xd9'))
 
     def test_get_frame_returns_false_if_encoding_fails(self):
-        with patch('src.Classes.frame_processor.cv2.imencode', return_value=(False, None)):
+        with patch('src.Classes.FrameProcessor.cv2.imencode', return_value=(False, None)):
             self.processor.running = True
             self.processor.frame = self.sample_frame
             ok, jpeg = self.processor.get_frame()

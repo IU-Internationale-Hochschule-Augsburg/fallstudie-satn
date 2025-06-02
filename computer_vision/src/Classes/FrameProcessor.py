@@ -87,8 +87,8 @@ class FrameProcessor:
             frame = self.frame.copy() if self.frame is not None else None
         if frame is None:
             return False, None
-        processed = self._process_frame(frame)
-        ok, jpeg = cv2.imencode('.jpg', processed)
+        #processed = self._process_frame(frame)
+        ok, jpeg = cv2.imencode('.jpg', frame)
         if not ok:
             return False, None
         return True, jpeg.tobytes()

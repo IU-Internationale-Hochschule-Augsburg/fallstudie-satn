@@ -45,6 +45,10 @@ def video_capture():
                 ok, jpeg = camera.get_frame()
                 if not ok:
                     continue
+
+                od = ObjectDetection()
+                obj_contours = od.get_object_position(jpg, only_contours=True )
+                print(obj_contours)
                 yield (b'--frame\r\n'
                        b'Content-Type: image/jpeg\r\n\r\n' + jpeg + b'\r\n')
             except Exception as e:

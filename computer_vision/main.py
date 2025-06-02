@@ -5,6 +5,7 @@ from src.Classes.TaskPipeline.TaskForward import *
 from src.Classes.TaskPipeline.TaskTurn import *
 from src.Classes.TaskPipeline.TaskPipeline import *
 from src.Classes.ObjectDetection.ObjectDetection import *
+from src.Utils.pathfinding import get_zumo_direction
 
 app = Flask(__name__)
 camera = FrameProcessor()
@@ -101,6 +102,16 @@ def get_task():
 @app.route('/manualControl', methods=['GET'])
 def manual_control():
     return render_template('manual_control.html')
+
+@app.route('/zumo-position', methods=['GET'])
+def zumo_position():
+    od = ObjectDetection()
+    positions:dict = od.handle_object_detection_from_source()
+    zumo_position_data = positions.get("zumo")
+    if zumo_position_data is None:
+        return Response(status=500)
+    zumo_position_data = get_zumo_direction(zumo_position_data)
+    return Response(status=200, response=json.dumps(zumo_position_data), mimetype='application/json')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, threaded=True)

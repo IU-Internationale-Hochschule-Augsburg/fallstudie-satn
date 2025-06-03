@@ -220,7 +220,7 @@ class ObjectDetection:
         zumo_pos = self.get_zumo_position(cropped)
         print(obj_pos)
         print(zumo_pos)
-
+        self.camera.release()
         return {
             'zumo': zumo_pos,
             'objects': obj_pos

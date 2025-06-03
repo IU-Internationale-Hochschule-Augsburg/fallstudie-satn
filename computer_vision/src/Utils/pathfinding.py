@@ -68,8 +68,10 @@ def get_next_task(positions: dict):
                     and math.isclose(vector_to_angle(pushing_dest.get("xDirect"), pushing_dest.get("yDirect")),
                                      vector_to_angle(zumo.get("xDirect"), zumo.get("yDirect")), abs_tol=2)):
                 # zumo is on pushing destination
+                print("Pushing Forward")
                 return TaskForward()
             # zumo is not on pushing destination
+            print("Aimed Destination: ", LastStartPosition.data)
             return get_task_for_destination(zumo, pushing_dest)
 
     # check if zumo is on last init position
@@ -83,6 +85,7 @@ def get_next_task(positions: dict):
         target: dict = min(positions.get("objects"), key=lambda d: d["xCoord"] + d["yCoord"])
         LastStartPosition.data = get_pushing_pos(zumo, target)
     # drive back to last init pos
+    print("Aimed Destination: ", LastStartPosition.data)
     return get_task_for_destination(zumo, LastStartPosition.data)
 
 

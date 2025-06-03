@@ -1,6 +1,6 @@
 # Docker Image Management
 
-Dokumentation für den Umgang mit Docker Images entsprechend Issue #102. Diese Anleitung beschränkt sich auf die für das Projekt relevanten Schritte.
+Dokumentation für den Umgang mit Docker Images entsprechend Issue [#102](https://github.com/IU-Internationale-Hochschule-Augsburg/fallstudie-satn/issues/102). Diese Anleitung beschränkt sich auf die für das Projekt relevanten Schritte.
 
 ## 1. Download des Docker Images
 

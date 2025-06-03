@@ -86,8 +86,7 @@ class FrameProcessor:
             return False, None
 
         # Verarbeiten
-        processed = self._process_frame(frame)
-        return True, processed
+        return True, frame
 
     def frame_generator(self):
         """

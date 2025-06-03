@@ -33,7 +33,7 @@ Entwicklung einer geeigneten Engagement-Strategie:
 
 ## Stakeholder-Register
 | Name | Position | Kategorie | Anforderungen | Einfluss | Einstellung | Konfliktpotenzial | Rolle | Kommunikationsfrequenz | Anmerkung |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | Joachim Schlosser | Prof. Dr. | intern | Qualitätssicherung | gering | unterstützend | niedrig | Abnehmer | 1x/Woche | Wartezeiten gering halten |
 | Sascha Sprengler |  | intern | Dokumentation | hoch | unterstützend | niedrig | Entwicklung, PM | 1x/Woche | Verfasser |
 | Korbinian Müller | Fachinformatiker | intern | Code-Qualität und Standards | hoch | unterstützend | niedrig | Entwicklung, PM | 1x/Woche | 3D-Drucker |

@@ -1,2 +1,2 @@
 from . import pathfinding
-from pathfinding import LastZumoPos
+from .pathfinding import LastZumoPos

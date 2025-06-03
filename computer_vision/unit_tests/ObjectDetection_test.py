@@ -43,7 +43,7 @@ class TestObjectDetection(unittest.TestCase):
                 'height': 10
             }
 
-            result = self.detector.getZumoPosition(self.dummy_img, only_contours=True)
+            result = self.detector.get_zumo_position(self.dummy_img, only_contours=True)
             self.assertEqual(len(result), 5)
 
     @patch('cv2.findContours')
@@ -59,7 +59,7 @@ class TestObjectDetection(unittest.TestCase):
                 {'area': 90.0, 'aspect_ratio': 1.0, 'x_coord': 5, 'y_coord': 5, 'width': 9, 'height': 10},
             ]
 
-            result = self.detector.getZumoPosition(self.dummy_img)
+            result = self.detector.get_zumo_position(self.dummy_img)
             self.assertIn('xCoord', result)
             self.assertIn('yCoord', result)
             self.assertIn('dx', result)

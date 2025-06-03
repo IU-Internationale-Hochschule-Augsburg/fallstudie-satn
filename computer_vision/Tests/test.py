@@ -13,7 +13,7 @@ cv2.imshow('cropped_img', cropped_img)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
 objects = od.get_object_position(cropped_img)
-zumo = od.getZumoPosition(cropped_img)
+zumo = od.get_zumo_position(cropped_img)
 positions = {
     "zumo": zumo,
     "objects": objects

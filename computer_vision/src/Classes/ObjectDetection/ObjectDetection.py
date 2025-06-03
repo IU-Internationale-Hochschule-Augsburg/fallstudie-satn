@@ -91,7 +91,7 @@ class ObjectDetection:
             list: Object position dictionaries or contours.
         """
         # Get Zumo position to exclude it from object detection
-        zumo_data = self.getZumoPosition(img)
+        zumo_data = self.get_zumo_position(img)
         _, tresh = cv2.threshold(img, t, 255, cv2.THRESH_BINARY_INV)
 
         # Detect contours

@@ -3,22 +3,21 @@ try:
 except ImportError:
     Picamera2 = None
     Preview = None
-    
+
 import cv2
-import threading
-import time
 
 class FrameProcessor:
     """
-    Encapsulation of the pi cam stream using Picamera2.
+    Encapsulation of the pi cam stream using Picamera2,
+    ohne Hintergrund-Thread: get_frame holt jeweils nur ein Frame.
     """
     def __init__(self, width=1280, height=720, alpha=2.0, beta=0, blur_ksize=3):
         """
-        :param width: width of the output
-        :param height: height of the output
-        :param alpha: contrast factor
-        :param beta: brightness offset
-        :param blur_ksize: kernel size for median blur
+        :param width: Breite des Ausgabebildes
+        :param height: Höhe des Ausgabebildes
+        :param alpha: Kontrastfaktor
+        :param beta: Helligkeitsoffset
+        :param blur_ksize: Kernelgröße für Median-Blur
         """
         self.width = width
         self.height = height
@@ -26,85 +25,71 @@ class FrameProcessor:
         self.beta = beta
         self.blur_ksize = blur_ksize
         self.picam2 = None
-        self.running = False
-        self.frame = None
-        self.lock = threading.Lock()
 
     def open(self):
-        """Initializes and starts the Picamera2 pipeline."""
-        print("Opening Picamera2...")
-        if self.running:
-            print("is running")
+        """Initialisiert und startet die Picamera2-Pipeline."""
+        if self.picam2 is not None:
+            # Bereits geöffnet
             return
-        # Configure Picamera2
+
+        print("Opening Picamera2...")
         self.picam2 = Picamera2()
+        # Optional: Auflösung oder Konfiguration einstellen
+        # config = self.picam2.create_preview_configuration(
+        #     main={"format": "RGB888", "size": (self.width, self.height)}
+        # )
+        # self.picam2.configure(config)
         self.picam2.start()
-        self.running = True
-        # Start background thread to grab frames
-        threading.Thread(target=self._capture_loop, daemon=True).start()
-        timeout = time.time() + 3
-        while self.frame is None:
-            if time.time() > timeout:
-                raise RuntimeError("Timeout: Kamera liefert kein erstes Frame")
-            time.sleep(0.1)
 
     def release(self):
-        """Stops the camera and releases resources."""
-        if not self.running:
-            return
-        self.running = False
+        """Stoppt die Kamera und gibt Ressourcen frei."""
         if self.picam2:
             self.picam2.stop()
             self.picam2.close()
             self.picam2 = None
 
-    def _capture_loop(self):
-        """Continuously captures frames from Picamera2 to self.frame."""
-        while self.running:
-            try:
-                frame = self.picam2.capture_array()
-                with self.lock:
-                    self.frame = frame
-            except Exception as e:
-                print(f"Fehler beim Frame-Capture: {e}")
-
     def _process_frame(self, frame):
         """
-        Convert the input image to grayscale, enhance contrast, and reduce noise.
-        :param frame: Input image (RGB or grayscale as numpy array)
-        :return: Processed image (grayscale, denoised)
+        Verarbeitet das aufgenommene Bild: Kontrast/ Helligkeit anpassen,
+        Graustufen und Rauschreduzierung.
+        :param frame: Eingabebild (RGB als numpy array)
+        :return: verarbeiteter Graustufen-Frame
         """
-        # Convert RGB to BGR for OpenCV processing
+        # RGB → BGR für OpenCV
         bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
-        # Adjust contrast and brightness
+        # Kontrast und Helligkeit anpassen
         contrasted = cv2.convertScaleAbs(bgr, alpha=self.alpha, beta=self.beta)
-        # Convert to grayscale
+        # In Graustufen umwandeln
         gray = cv2.cvtColor(contrasted, cv2.COLOR_BGR2GRAY)
-        # Reduce noise using median filter
+        # Rauschen mit Median-Filter reduzieren
         denoised = cv2.medianBlur(gray, ksize=self.blur_ksize)
         return denoised
 
     def get_frame(self):
         """
-        Reads the latest frame, processes it, and encodes it as JPEG.
+        Holt ein einzelnes Bild von der Kamera, verarbeitet es und kodiert als JPEG.
         :return: (ok: bool, jpeg_bytes: bytes)
         """
-        print("is_running", self.running)
-        print("has_frame", self.frame)
-        if not self.running or self.frame is None:
+        if self.picam2 is None:
             return False, None
-        with self.lock:
-            frame = self.frame.copy() if self.frame is not None else None
-            print("frame copied")
+
+        try:
+            # Einmaliges Capture
+            frame = self.picam2.capture_array()
+        except Exception as e:
+            print(f"Fehler beim Frame-Capture: {e}")
+            return False, None
+
         if frame is None:
             return False, None
+
+        # Verarbeiten
         processed = self._process_frame(frame)
-        print("processed")
         return True, processed
 
     def frame_generator(self):
         """
-        Generator for Flask endpoint to stream video frames (MJPEG).
+        Generator für Flask-Endpoint, um MJPEG-Stream zu liefern.
         """
         try:
             while True:

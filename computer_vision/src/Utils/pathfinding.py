@@ -39,8 +39,10 @@ def get_zumo_direction(zumo_pos: dict):
         LastZumoPos.data["yDirect"] = zumo_pos.get("yCoord") - LastZumoPos.data.get("yCoord")
         LastZumoPos.data["xCoord"] = zumo_pos.get("xCoord")
         LastZumoPos.data["yCoord"] = zumo_pos.get("yCoord")
-    zumo_pos["xDirect"] = LastZumoPos.data["xDirect"]
-    zumo_pos["yDirect"] = LastZumoPos.data["yDirect"]
+    elif LastZumoPos.data.get("xDirect") is None:
+        return None
+    zumo_pos["xDirect"] = LastZumoPos.data.get("xDirect")
+    zumo_pos["yDirect"] = LastZumoPos.data.get("yDirect")
     return zumo_pos
 
 

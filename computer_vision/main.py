@@ -5,7 +5,7 @@ from src.Classes.TaskPipeline.TaskForward import *
 from src.Classes.TaskPipeline.TaskTurn import *
 from src.Classes.TaskPipeline.TaskPipeline import *
 from src.Classes.ObjectDetection.ObjectDetection import *
-from src.Utils.pathfinding import get_zumo_direction
+from src.Utils.pathfinding import get_zumo_direction, get_next_task
 import cv2
 
 app = Flask(__name__)
@@ -14,6 +14,28 @@ app = Flask(__name__)
 
 @app.route('/info')
 def info():
+    positions = {
+        "zumo": {
+            "xCoord": 1,
+            "yCoord": 1,
+            "dx": 10,
+            "dy": 10,
+        },
+        "objects": [
+            {
+                "xCoord": 450,
+                "yCoord": 50,
+            },
+            {
+                "xCoord": 50,
+                "yCoord": 50,
+            }, {
+                "xCoord": 150,
+                "yCoord": 350,
+            }
+        ]
+    }
+    print(vars(get_next_task(positions)))
     return json.dumps({'status': 'running'})
 
 

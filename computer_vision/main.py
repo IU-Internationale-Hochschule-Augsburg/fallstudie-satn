@@ -36,12 +36,6 @@ def data():
 @app.route('/videoCapture')
 def video_capture():
     """Direkte MJPEG-Ausgabe aus der Kamera (NumPy-Array intern, JPEG erst hier)."""
-    try:
-        camera.open()
-    except RuntimeError as e:
-        app.logger.error(f"Kamera konnte nicht geöffnet werden: {e}")
-        return str(e), 500
-
     def generate():
         while True:
             try:

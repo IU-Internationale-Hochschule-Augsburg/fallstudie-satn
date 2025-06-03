@@ -86,7 +86,8 @@ class FrameProcessor:
             return False, None
 
         # Verarbeiten
-        return True, frame
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        return True, gray
 
     def frame_generator(self):
         """

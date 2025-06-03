@@ -34,6 +34,7 @@ class FrameProcessor:
         """Initializes and starts the Picamera2 pipeline."""
         print("Opening Picamera2...")
         if self.running:
+            print("is running")
             return
         # Configure Picamera2
         self.picam2 = Picamera2()
@@ -54,6 +55,7 @@ class FrameProcessor:
         self.running = False
         if self.picam2:
             self.picam2.stop()
+            self.picam2.close()
             self.picam2 = None
 
     def _capture_loop(self):

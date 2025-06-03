@@ -47,7 +47,7 @@ def video_capture():
             cropped_img = od.crop_image(gray_frame)
             # Beispiel: nur Konturen abfragen (liefert Liste[np.ndarray])
             contoursObj = od.get_object_position(cropped_img, only_contours=True)
-            contourZumo = od.get_zumo_position(cropped_img, only_contours=True)
+            contoursZumo = od.get_zumo_position(cropped_img, only_contours=True)
             # Um Konturen sichtbar zu machen, müssen wir ein Farb-Bild erzeugen:
             color_frame = cv2.cvtColor(gray_frame, cv2.COLOR_GRAY2BGR)
             cv2.drawContours(cropped_img, contoursObj, -1, (0, 255, 255), 2)

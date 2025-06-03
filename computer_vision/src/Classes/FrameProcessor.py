@@ -5,15 +5,17 @@ try:
 except ImportError:
     Picamera2 = None
     Preview = None
-    
+
 import cv2
 import threading
 import time
+
 
 class FrameProcessor:
     """
     Encapsulation of the pi cam stream using Picamera2.
     """
+
     def __init__(self, width=1280, height=720, alpha=2.0, beta=0, blur_ksize=3):
         """
         :param width: width of the output
@@ -87,7 +89,8 @@ class FrameProcessor:
     def get_frame(self):
         """
         Reads the latest frame, processes it, and encodes it as JPEG.
-        :return: (ok: bool, jpeg_bytes: bytes)
+        :return: ok, jpeg
+        :rtype: Boolean, numpy.ndarray
         """
         if not self.running or self.frame is None:
             return False, None

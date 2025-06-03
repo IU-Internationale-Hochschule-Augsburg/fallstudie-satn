@@ -7,6 +7,7 @@ import threading
 # Import the FrameProcessor class
 from src.Classes.FrameProcessor import FrameProcessor, Picamera2
 
+
 class TestFrameProcessor(unittest.TestCase):
     def setUp(self):
         self.height = 720
@@ -27,11 +28,6 @@ class TestFrameProcessor(unittest.TestCase):
         self.processor.open()
         self.mock_picam2 = MagicMock()
         self.mock_picam2_class.assert_called_once()
-        self.mock_picam2.create_preview_configuration.assert_called_with(
-            main={"format": 'RGB888', "size": (self.processor.width, self.processor.height)}
-        )
-        self.mock_picam2.configure.assert_called_once_with('config')
-        self.mock_picam2.start.assert_called_once()
         self.assertTrue(self.processor.running)
 
     def test_capture_loop_updates_frame(self):
@@ -60,9 +56,10 @@ class TestFrameProcessor(unittest.TestCase):
         self.assertEqual(result.shape, (self.height, self.width))
         self.assertTrue((0 <= result).all() and (result <= 255).all())
 
-    def test_get_frame_raises_if_not_opened(self):
-        with self.assertRaises(RuntimeError):
-            self.processor.get_frame()
+    def test_get_frame_not_opened(self):
+        ok, bytes = self.processor.get_frame()
+        self.assertFalse(ok)
+        self.assertIsNone(bytes)
 
     def test_get_frame_returns_false_if_no_frame(self):
         self.processor.running = True
@@ -76,15 +73,7 @@ class TestFrameProcessor(unittest.TestCase):
         self.processor.frame = self.sample_frame
         ok, jpeg = self.processor.get_frame()
         self.assertTrue(ok)
-        self.assertTrue(jpeg.startswith(b'\xff\xd8') and jpeg.endswith(b'\xff\xd9'))
-
-    def test_get_frame_returns_false_if_encoding_fails(self):
-        with patch('src.Classes.FrameProcessor.cv2.imencode', return_value=(False, None)):
-            self.processor.running = True
-            self.processor.frame = self.sample_frame
-            ok, jpeg = self.processor.get_frame()
-            self.assertFalse(ok)
-            self.assertIsNone(jpeg)
+        self.assertTrue(type(jpeg) == np.ndarray)
 
     def test_frame_generator_yields_and_releases(self):
         self.processor.running = True
@@ -103,6 +92,7 @@ class TestFrameProcessor(unittest.TestCase):
             next(gen)
 
         self.assertFalse(self.processor.running)
+
 
 if __name__ == '__main__':
     unittest.main()

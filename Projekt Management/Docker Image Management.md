@@ -1,4 +1,4 @@
-# Docker Image Management - Anleitung
+# Docker Image Management
 
 Dokumentation für den Umgang mit Docker Images entsprechend Issue #102. Diese Anleitung beschränkt sich auf die für das Projekt relevanten Schritte.
 

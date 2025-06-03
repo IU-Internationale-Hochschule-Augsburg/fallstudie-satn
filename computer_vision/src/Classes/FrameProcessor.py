@@ -31,18 +31,15 @@ class FrameProcessor:
 
     def open(self):
         """Initializes and starts the Picamera2 pipeline."""
+        print("Opening Picamera2...")
         if self.running:
             return
         # Configure Picamera2
         self.picam2 = Picamera2()
-        config = self.picam2.create_preview_configuration(
-            main={"format": 'RGB888', "size": (self.width, self.height)}
-        )
-        self.picam2.configure(config)
+        print(self.picam2.resolution)
         self.picam2.start()
         self.running = True
-        # Start background thread to grab frames
-        threading.Thread(target=self._capture_loop, daemon=True).start()
+        print("is Running")
 
     def release(self):
         """Stops the camera and releases resources."""

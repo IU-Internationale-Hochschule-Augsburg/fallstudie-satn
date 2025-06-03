@@ -2,9 +2,15 @@
 <module type="PYTHON_MODULE" version="4">
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/computer_vision" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/.venv" />
+      <excludeFolder url="file://$MODULE_DIR$/computer_vision/.venv" />
     </content>
     <orderEntry type="jdk" jdkName="Python 3.13 (fallstudie-satn)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
+  </component>
+  <component name="PackageRequirementsSettings">
+    <option name="requirementsPath" value="C:\Anderes\Uni\4. Semester\Fallstudie\fallstudie-satn\computer_vision\requirements.txt" />
+    <option name="removeUnused" value="true" />
   </component>
 </module>

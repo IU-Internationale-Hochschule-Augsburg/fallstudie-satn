@@ -6,6 +6,7 @@ except ImportError:
     
 import cv2
 import threading
+import time
 
 class FrameProcessor:
     """
@@ -31,18 +32,20 @@ class FrameProcessor:
 
     def open(self):
         """Initializes and starts the Picamera2 pipeline."""
+        print("Opening Picamera2...")
         if self.running:
             return
         # Configure Picamera2
         self.picam2 = Picamera2()
-        config = self.picam2.create_preview_configuration(
-            main={"format": 'RGB888', "size": (self.width, self.height)}
-        )
-        self.picam2.configure(config)
         self.picam2.start()
         self.running = True
         # Start background thread to grab frames
         threading.Thread(target=self._capture_loop, daemon=True).start()
+        timeout = time.time() + 3
+        while self.frame is None:
+            if time.time() > timeout:
+                raise RuntimeError("Timeout: Kamera liefert kein erstes Frame")
+            time.sleep(0.1)
 
     def release(self):
         """Stops the camera and releases resources."""
@@ -56,9 +59,12 @@ class FrameProcessor:
     def _capture_loop(self):
         """Continuously captures frames from Picamera2 to self.frame."""
         while self.running:
-            img = self.picam2.capture_array()
-            with self.lock:
-                self.frame = img
+            try:
+                frame = self.picam2.capture_array()
+                with self.lock:
+                    self.frame = frame
+            except Exception as e:
+                print(f"Fehler beim Frame-Capture: {e}")
 
     def _process_frame(self, frame):
         """
@@ -81,17 +87,14 @@ class FrameProcessor:
         Reads the latest frame, processes it, and encodes it as JPEG.
         :return: (ok: bool, jpeg_bytes: bytes)
         """
-        if not self.running:
-            raise RuntimeError("Camera not opened")
+        if not self.running or self.frame is None:
+            return False, None
         with self.lock:
             frame = self.frame.copy() if self.frame is not None else None
         if frame is None:
             return False, None
         processed = self._process_frame(frame)
-        ok, jpeg = cv2.imencode('.jpg', processed)
-        if not ok:
-            return False, None
-        return True, jpeg.tobytes()
+        return True, processed
 
     def frame_generator(self):
         """

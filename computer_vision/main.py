@@ -5,37 +5,16 @@ from src.Classes.TaskPipeline.TaskForward import *
 from src.Classes.TaskPipeline.TaskTurn import *
 from src.Classes.TaskPipeline.TaskPipeline import *
 from src.Classes.ObjectDetection.ObjectDetection import *
-from src.Utils.pathfinding import get_zumo_direction, get_next_task
+from src.Utils.pathfinding import get_zumo_direction
 import cv2
 
 app = Flask(__name__)
-
+camera = FrameProcessor()
+camera.open()
 
 
 @app.route('/info')
 def info():
-    positions = {
-        "zumo": {
-            "xCoord": 1,
-            "yCoord": 1,
-            "dx": 10,
-            "dy": 10,
-        },
-        "objects": [
-            {
-                "xCoord": 450,
-                "yCoord": 50,
-            },
-            {
-                "xCoord": 50,
-                "yCoord": 50,
-            }, {
-                "xCoord": 150,
-                "yCoord": 350,
-            }
-        ]
-    }
-    print(vars(get_next_task(positions)))
     return json.dumps({'status': 'running'})
 
 
@@ -54,6 +33,45 @@ def data():
     return json.dumps(coordinat_data)
 
 
+@app.route('/videoCapture')
+def video_capture():
+    """Direkte MJPEG-Ausgabe aus der Kamera (NumPy-Array intern, JPEG erst hier)."""
+    def generate():
+        while True:
+            sleep(500)
+            try:
+                ok, gray_frame = camera.get_frame()
+                if not ok or gray_frame is None:
+                    continue
+
+                # Optional: Konturen in das Frame einzeichnen
+                # Wenn ihr obj‐Erkennung direkt auf dem Grauwert-Array durchführen wollt:
+                od = ObjectDetection()
+                # Beispiel: nur Konturen abfragen (liefert Liste[np.ndarray])
+                contours = od.get_object_position(gray_frame, only_contours=True)
+                # Um Konturen sichtbar zu machen, müssen wir ein Farb-Bild erzeugen:
+                color_frame = cv2.cvtColor(gray_frame, cv2.COLOR_GRAY2BGR)
+                cv2.drawContours(color_frame, contours, -1, (0, 255, 0), 2)
+
+                # Jetzt color_frame (BGR uint8) in JPEG kodieren
+                success, jpeg_buf = cv2.imencode('.jpg', color_frame)
+                if not success:
+                    continue
+                jpeg_bytes = jpeg_buf.tobytes()
+                print(od.handle_object_detection_from_source())
+                # MJPEG-Frame senden
+                yield (b'--frame\r\n'
+                       b'Content-Type: image/jpeg\r\n\r\n' + jpeg_bytes + b'\r\n')
+            except Exception as e:
+                app.logger.error(f"Fehler beim Streamen: {e}")
+                break
+
+    return Response(generate(), mimetype='multipart/x-mixed-replace; boundary=frame')
+
+
+@app.route('/liveStream')
+def liveStream():
+    return render_template('liveStream.html')
 
 
 @app.route('/task', methods=['POST'])

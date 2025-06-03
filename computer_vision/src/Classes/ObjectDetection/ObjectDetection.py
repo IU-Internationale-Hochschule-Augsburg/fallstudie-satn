@@ -208,9 +208,6 @@ class ObjectDetection:
     def handle_object_detection_from_source(self):
         print("handle object detection from source")
         ok, gray_frame = self.camera.get_frame()  # get_frame gibt JPEG-Bytes zurück
-        print("is_ok", ok)
-        print("gray_frame", gray_frame)
-
         if not ok or gray_frame is None:
             print("poll img")
             while not ok:
@@ -218,11 +215,10 @@ class ObjectDetection:
             print("poll finished")
 
         cropped = self.crop_image(gray_frame)
-        print(cropped.shape)
         obj_pos = self.get_object_position(cropped)
         zumo_pos = self.get_zumo_position(cropped)
-        print(obj_pos)
-        print(zumo_pos)
+        print("obj_pos",obj_pos)
+        print("zumo_pos",zumo_pos)
         self.camera.release()
         return {
             'zumo': zumo_pos,

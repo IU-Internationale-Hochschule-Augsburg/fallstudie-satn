@@ -202,9 +202,16 @@ class ObjectDetection:
         }
 
     def handle_object_detection_from_source(self):
+        print("handle object detection from source")
         ok, gray_frame = camera.get_frame()  # get_frame gibt JPEG-Bytes zurück
+        print("is_ok", ok)
+        print("gray_frame", gray_frame)
+
         if not ok or gray_frame is None:
-            return None
+            print("poll img")
+            while not ok:
+                ok, gray_frame = camera.get_frame()
+            print("poll finished")
 
         cropped = od.crop_image(gray_img)
         print(cropped.shape)

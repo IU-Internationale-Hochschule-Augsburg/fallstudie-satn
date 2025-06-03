@@ -101,7 +101,8 @@ class ObjectDetection:
         # Detect contours
         contours, _ = cv2.findContours(tresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         print("contours", contours)
-        zumo_x, zumo_y, zumo_w, zumo_h = zumo_data.values()
+        if zumo_data is not None:
+            zumo_x, zumo_y, zumo_w, zumo_h = zumo_data.values()
 
         if only_contours:
             return filterd_contours
@@ -112,7 +113,7 @@ class ObjectDetection:
             x, y, w, h = cv2.boundingRect(cnt)
 
             # Exclude objects too close to Zumo robot's position
-            if abs(x - zumo_x) < w and abs(y - zumo_y) < h:
+            if zumo_data is None or (zumo_data is not None and (abs(x - zumo_x) < w and abs(y - zumo_y) < h)):
                 continue
 
             # Add object bounding box

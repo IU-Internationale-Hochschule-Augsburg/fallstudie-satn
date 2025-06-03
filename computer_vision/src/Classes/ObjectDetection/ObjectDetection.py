@@ -92,13 +92,15 @@ class ObjectDetection:
         Returns:
             list: Object position dictionaries or contours.
         """
+        print("inside get_object_position")
         # Get Zumo position to exclude it from object detection
         zumo_data = self.get_zumo_position(img)
+        print("zumo_data", zumo_data)
         _, tresh = cv2.threshold(img, t, 255, cv2.THRESH_BINARY_INV)
 
         # Detect contours
         contours, _ = cv2.findContours(tresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
+        print("contours", contours)
         # Filter contours by minimum area
         filterd_contours = [cnt for cnt in contours if cv2.contourArea(cnt) > min_area]
         zumo_x, zumo_y, zumo_w, zumo_h = zumo_data.values()

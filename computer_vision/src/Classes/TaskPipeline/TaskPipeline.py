@@ -35,6 +35,5 @@ class TaskPipeline():
             objects = od.handle_object_detection_from_source()
             if objects is None:
                 return None
-            print("objects", vars(objects))
             retrieval: Task = get_next_task(objects)
         return retrieval

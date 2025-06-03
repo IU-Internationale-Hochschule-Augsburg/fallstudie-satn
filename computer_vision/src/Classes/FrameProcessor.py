@@ -36,7 +36,7 @@ class FrameProcessor:
             return
         # Configure Picamera2
         self.picam2 = Picamera2()
-        print(self.picam2.resolution)
+        print(self.picam2)
         self.picam2.start()
         self.running = True
         print("is Running")

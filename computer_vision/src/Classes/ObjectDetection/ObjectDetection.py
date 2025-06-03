@@ -2,12 +2,13 @@ import cv2
 import itertools
 import numpy as np
 from src.Classes.FrameProcessor import FrameProcessor
-camera = FrameProcessor()
+
 
 
 class ObjectDetection:
     def __init__(self):
-        pass
+        self.camera = FrameProcessor()
+        self.camera.open()
 
     def getZumoPosition(self, img, t=175, only_contours=False):
         """
@@ -203,7 +204,7 @@ class ObjectDetection:
 
     def handle_object_detection_from_source(self):
         print("handle object detection from source")
-        ok, gray_frame = camera.get_frame()  # get_frame gibt JPEG-Bytes zurück
+        ok, gray_frame = self.camera.get_frame()  # get_frame gibt JPEG-Bytes zurück
         print("is_ok", ok)
         print("gray_frame", gray_frame)
 

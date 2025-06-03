@@ -67,6 +67,8 @@ class ObjectDetection:
                 best_score = score
 
         # If a pair was found, return bounding box around both
+        if best_pair is None:
+            return None
         x1, y1, w1, h1 = cv2.boundingRect(best_pair[0])
         x2, y2, w2, h2 = cv2.boundingRect(best_pair[1])
 

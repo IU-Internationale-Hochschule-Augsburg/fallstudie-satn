@@ -79,6 +79,8 @@ class FrameProcessor:
         except Exception as e:
             print(f"Fehler beim Frame-Capture: {e}")
             return False, None
+        finally:
+            self.release()
 
         if frame is None:
             return False, None

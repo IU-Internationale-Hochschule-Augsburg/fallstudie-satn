@@ -9,6 +9,7 @@ import cv2
 
 app = Flask(__name__)
 camera = FrameProcessor()
+camera.open()
 
 
 @app.route('/info')

@@ -40,6 +40,8 @@ class FrameProcessor:
         self.picam2.start()
         self.running = True
         print("is Running")
+        # Start background thread to grab frames
+        threading.Thread(target=self._capture_loop, daemon=True).start()
 
     def release(self):
         """Stops the camera and releases resources."""

@@ -177,5 +177,5 @@ docker system info
 
 ---
 
-*Erstellt für Issue #102 | Milestone: 03.06.2025*
+*Erstellt für Issue [#102](https://github.com/IU-Internationale-Hochschule-Augsburg/fallstudie-satn/issues/102) | Milestone: 03.06.2025*
 *Letzte Aktualisierung: [03.06.2025]*

@@ -79,7 +79,7 @@ class ObjectDetection:
             'dy': h1
         }
 
-    def get_object_position(self, img, t=115, min_area=500, only_contours=False):
+    def get_object_position(self, img, t=100, min_area=250, only_contours=False):
         """
         Detects all objects in the image that are not part of the Zumo robot.
 
@@ -96,13 +96,11 @@ class ObjectDetection:
         # Get Zumo position to exclude it from object detection
         zumo_data = self.get_zumo_position(img)
         print("zumo_data", zumo_data)
-        _, tresh = cv2.threshold(img, t, 255, cv2.THRESH_BINARY_INV)
+        _, tresh = cv2.threshold(img, t, 180, cv2.THRESH_BINARY_INV)
 
         # Detect contours
         contours, _ = cv2.findContours(tresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         print("contours", contours)
-        # Filter contours by minimum area
-        filterd_contours = [cnt for cnt in contours if cv2.contourArea(cnt) > min_area]
         zumo_x, zumo_y, zumo_w, zumo_h = zumo_data.values()
 
         if only_contours:
@@ -127,7 +125,7 @@ class ObjectDetection:
 
         return objects
 
-    def crop_image(self, gray_img, dark_thresh=118):
+    def crop_image(self, gray_img, dark_thresh=80):
         """
         Crops the main region of interest (ROI) based on dark borders and edge detection.
 

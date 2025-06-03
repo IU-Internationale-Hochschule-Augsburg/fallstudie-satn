@@ -6,6 +6,7 @@ from src.Classes.TaskPipeline.TaskTurn import *
 from src.Classes.TaskPipeline.TaskPipeline import *
 from src.Classes.ObjectDetection.ObjectDetection import *
 import cv2
+from time import sleep
 
 app = Flask(__name__)
 
@@ -29,7 +30,6 @@ def data():
         }
     }
     return json.dumps(coordinat_data)
-
 
 
 

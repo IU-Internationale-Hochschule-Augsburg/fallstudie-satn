@@ -203,7 +203,8 @@ class ObjectDetection:
 
     def handle_object_detection_from_source(self):
         ok, gray_frame = camera.get_frame()  # get_frame gibt JPEG-Bytes zurück
-
+        print("gray_frame", gray_frame)
+        print("gray_frame_size", gray_frame.shape)
         if ok and gray_frame is not None:
             cropped = od.crop_image(gray_img)
             obj_pos = selg.get_object_position(cropped)

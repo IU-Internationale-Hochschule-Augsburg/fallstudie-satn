@@ -87,13 +87,17 @@ class FrameProcessor:
         Reads the latest frame, processes it, and encodes it as JPEG.
         :return: (ok: bool, jpeg_bytes: bytes)
         """
+        print("is_running", self.running)
+        print("has_frame", self.frame)
         if not self.running or self.frame is None:
             return False, None
         with self.lock:
             frame = self.frame.copy() if self.frame is not None else None
+            print("frame copied")
         if frame is None:
             return False, None
         processed = self._process_frame(frame)
+        print("processed")
         return True, processed
 
     def frame_generator(self):

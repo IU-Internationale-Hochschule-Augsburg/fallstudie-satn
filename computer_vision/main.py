@@ -48,7 +48,7 @@ def video_capture():
                 ok, gray_frame = camera.get_frame()
                 if not ok or gray_frame is None:
                     continue
-                print(gray_frame.shape)
+
                 # Optional: Konturen in das Frame einzeichnen
                 # Wenn ihr obj‐Erkennung direkt auf dem Grauwert-Array durchführen wollt:
                 od = ObjectDetection()

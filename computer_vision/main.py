@@ -9,8 +9,7 @@ import cv2
 from time import sleep
 
 app = Flask(__name__)
-camera = FrameProcessor()
-camera.open()
+
 
 
 @app.route('/info')
@@ -32,45 +31,6 @@ def data():
     }
     return json.dumps(coordinat_data)
 
-
-@app.route('/videoCapture')
-def video_capture():
-    """Direkte MJPEG-Ausgabe aus der Kamera (NumPy-Array intern, JPEG erst hier)."""
-    def generate():
-
-        try:
-            ok, gray_frame = camera.get_frame()
-            camera.release()
-            # Optional: Konturen in das Frame einzeichnen
-            # Wenn ihr obj‐Erkennung direkt auf dem Grauwert-Array durchführen wollt:
-            od = ObjectDetection()
-            cropped_img = od.crop_image(gray_frame)
-            # Beispiel: nur Konturen abfragen (liefert Liste[np.ndarray])
-            contoursObj = od.get_object_position(cropped_img, only_contours=True)
-            contoursZumo = od.get_zumo_position(cropped_img, only_contours=True)
-            # Um Konturen sichtbar zu machen, müssen wir ein Farb-Bild erzeugen:
-            color_frame = cv2.cvtColor(gray_frame, cv2.COLOR_GRAY2BGR)
-            cv2.drawContours(cropped_img, contoursObj, -1, (0, 255, 255), 2)
-            cv2.drawContours(cropped_img, contoursZumo, -1, (255, 255, 0), 2)
-
-            # Jetzt color_frame (BGR uint8) in JPEG kodieren
-            success, jpeg_buf = cv2.imencode('.jpg', color_frame)
-
-            jpeg_bytes = jpeg_buf.tobytes()
-            print(od.handle_object_detection_from_source())
-            # MJPEG-Frame senden
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + jpeg_bytes + b'\r\n')
-        except Exception as e:
-            app.logger.error(f"Fehler beim Streamen: {e}")
-
-
-    return Response(generate(), mimetype='multipart/x-mixed-replace; boundary=frame')
-
-
-@app.route('/liveStream')
-def liveStream():
-    return render_template('liveStream.html')
 
 
 @app.route('/task', methods=['POST'])

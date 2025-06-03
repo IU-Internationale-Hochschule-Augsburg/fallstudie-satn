@@ -214,10 +214,10 @@ class ObjectDetection:
                 ok, gray_frame = camera.get_frame()
             print("poll finished")
 
-        cropped = od.crop_image(gray_img)
+        cropped = self.crop_image(gray_img)
         print(cropped.shape)
-        obj_pos = selg.get_object_position(cropped)
-        zumo_pos = selg.get_zumo_position(cropped)
+        obj_pos = self.get_object_position(cropped)
+        zumo_pos = self.get_zumo_position(cropped)
         print(obj_pos)
         print(zumo_pos)
 

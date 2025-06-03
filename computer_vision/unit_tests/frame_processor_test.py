@@ -25,7 +25,7 @@ class TestFrameProcessor(unittest.TestCase):
 
     def test_open_initializes_camera(self):
         self.processor.open()
-
+        self.mock_picam2 = MagicMock()
         self.mock_picam2_class.assert_called_once()
         self.mock_picam2.create_preview_configuration.assert_called_with(
             main={"format": 'RGB888', "size": (self.processor.width, self.processor.height)}
@@ -35,6 +35,7 @@ class TestFrameProcessor(unittest.TestCase):
         self.assertTrue(self.processor.running)
 
     def test_capture_loop_updates_frame(self):
+        self.mock_picam2 = MagicMock()
         self.processor.picam2 = self.mock_picam2
         self.processor.running = True
         self.mock_picam2.capture_array.side_effect = [self.sample_frame, Exception("Stop")]
@@ -43,6 +44,7 @@ class TestFrameProcessor(unittest.TestCase):
         self.assertTrue(np.array_equal(self.processor.frame, self.sample_frame))
 
     def test_release_stops_camera(self):
+        self.mock_picam2 = MagicMock()
         self.processor.running = True
         self.processor.picam2 = self.mock_picam2
 

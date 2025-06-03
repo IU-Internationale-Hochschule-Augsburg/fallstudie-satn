@@ -1,3 +1,5 @@
+from logging import raiseExceptions
+
 try:
     from picamera2 import Picamera2, Preview
 except ImportError:
@@ -64,7 +66,7 @@ class FrameProcessor:
                 with self.lock:
                     self.frame = frame
             except Exception as e:
-                print(f"Fehler beim Frame-Capture: {e}")
+                raise Exception("Fehler beim Frame-Capture:", e)
 
     def _process_frame(self, frame):
         """

@@ -5,7 +5,6 @@ from src.Classes.TaskPipeline.TaskForward import *
 from src.Classes.TaskPipeline.TaskTurn import *
 from src.Classes.TaskPipeline.TaskPipeline import *
 from src.Classes.ObjectDetection.ObjectDetection import *
-from src.Utils.pathfinding import get_zumo_direction
 import cv2
 from time import sleep
 

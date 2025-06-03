@@ -138,8 +138,10 @@ def get_task_for_destination(zumo_pos: dict, destination: dict):
     desired_angle = vector_to_angle(vector_x, vector_y)
     current_angle = vector_to_angle(zumo_pos.get("xDirect"), zumo_pos.get("yDirect"))
 
-    angle_diff = desired_angle - current_angle
+    if math.isclose(current_angle, desired_angle, abs_tol=2):
+        return TaskForward()
 
+    angle_diff = desired_angle - current_angle
     LastZumoPos.data["xDirect"] = vector_x
     LastZumoPos.data["yDirect"] = vector_y
 

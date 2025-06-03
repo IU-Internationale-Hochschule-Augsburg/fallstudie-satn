@@ -8,7 +8,7 @@
 5. Benutzername: pi
 6. Passwort: raspberry
 7. SSID: IU-Study
-8. PW: studieren_an_der_IU
+8. PW: ****
 9. Unter Dienste SSH Aktivieren
 10. Auf SD Karte Flashen
 

@@ -42,6 +42,11 @@ class FrameProcessor:
         print("is Running")
         # Start background thread to grab frames
         threading.Thread(target=self._capture_loop, daemon=True).start()
+        timeout = time.time() + 3
+        while self.frame is None:
+            if time.time() > timeout:
+                raise RuntimeError("Timeout: Kamera liefert kein erstes Frame")
+            time.sleep(0.1)
 
     def release(self):
         """Stops the camera and releases resources."""
@@ -55,9 +60,13 @@ class FrameProcessor:
     def _capture_loop(self):
         """Continuously captures frames from Picamera2 to self.frame."""
         while self.running:
-            img = self.picam2.capture_array()
-            with self.lock:
-                self.frame = img
+            try:
+                frame = self.picam2.capture_array()
+                with self.lock:
+                    self.frame = frame
+                print("Frame received")
+            except Exception as e:
+                print(f"Fehler beim Frame-Capture: {e}")
 
     def _process_frame(self, frame):
         """
@@ -80,8 +89,8 @@ class FrameProcessor:
         Reads the latest frame, processes it, and encodes it as JPEG.
         :return: (ok: bool, jpeg_bytes: bytes)
         """
-        if not self.running:
-            raise RuntimeError("Camera not opened")
+        if not self.running or self.frame is None:
+            return False, None
         with self.lock:
             frame = self.frame.copy() if self.frame is not None else None
         if frame is None:

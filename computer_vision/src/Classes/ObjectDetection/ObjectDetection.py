@@ -105,11 +105,11 @@ class ObjectDetection:
             zumo_x, zumo_y, zumo_w, zumo_h = zumo_data.values()
 
         if only_contours:
-            return filterd_contours
+            return contourscontours
 
         objects = []
 
-        for cnt in filterd_contours:
+        for cnt in contourscontours:
             x, y, w, h = cv2.boundingRect(cnt)
 
             # Exclude objects too close to Zumo robot's position

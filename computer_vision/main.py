@@ -45,11 +45,14 @@ def video_capture():
             # Optional: Konturen in das Frame einzeichnen
             # Wenn ihr obj‐Erkennung direkt auf dem Grauwert-Array durchführen wollt:
             od = ObjectDetection()
+            cropped_img = od.crop_image(gray_frame)
             # Beispiel: nur Konturen abfragen (liefert Liste[np.ndarray])
-            contours = od.get_object_position(gray_frame, only_contours=True)
+            contoursObj = od.get_object_position(cropped_img, only_contours=True)
+            contourZumo = od.get_zumo_position(cropped_img, only_contours=True)
             # Um Konturen sichtbar zu machen, müssen wir ein Farb-Bild erzeugen:
             color_frame = cv2.cvtColor(gray_frame, cv2.COLOR_GRAY2BGR)
-            cv2.drawContours(color_frame, contours, -1, (0, 255, 0), 2)
+            cv2.drawContours(cropped_img, contoursObj, -1, (0, 255, 255), 2)
+            cv2.drawContours(cropped_img, contoursZumo, -1, (255, 255, 0), 2)
 
             # Jetzt color_frame (BGR uint8) in JPEG kodieren
             success, jpeg_buf = cv2.imencode('.jpg', color_frame)

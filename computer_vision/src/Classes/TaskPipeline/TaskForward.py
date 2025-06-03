@@ -1,5 +1,6 @@
 from src.Classes.TaskPipeline.Task import Task
 
+
 class TaskForward(Task):
     """
     This class represent a task to drive forward

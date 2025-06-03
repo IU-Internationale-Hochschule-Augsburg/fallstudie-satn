@@ -206,8 +206,13 @@ class ObjectDetection:
 
         if ok and gray_frame is not None:
             cropped = od.crop_image(gray_img)
+            obj_pos = selg.get_object_position(cropped)
+            zumo_pos = selg.get_zumo_position(cropped)
+            print(obj_pos)
+            print(zumo_pos)
+
             return {
-                'zumo': self.getZumoPosition(cropped),
-                'objects': self.get_object_position(cropped)
+                'zumo': zumo_pos,
+                'objects': obj_pos
             }
         return None

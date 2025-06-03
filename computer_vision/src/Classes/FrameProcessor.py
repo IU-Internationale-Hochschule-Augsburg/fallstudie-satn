@@ -6,6 +6,7 @@ except ImportError:
     
 import cv2
 import threading
+import time
 
 class FrameProcessor:
     """

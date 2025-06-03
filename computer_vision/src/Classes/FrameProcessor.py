@@ -37,10 +37,8 @@ class FrameProcessor:
             return
         # Configure Picamera2
         self.picam2 = Picamera2()
-        print(self.picam2)
         self.picam2.start()
         self.running = True
-        print("is Running")
         # Start background thread to grab frames
         threading.Thread(target=self._capture_loop, daemon=True).start()
         timeout = time.time() + 3
@@ -65,7 +63,6 @@ class FrameProcessor:
                 frame = self.picam2.capture_array()
                 with self.lock:
                     self.frame = frame
-                print("Frame received")
             except Exception as e:
                 print(f"Fehler beim Frame-Capture: {e}")
 

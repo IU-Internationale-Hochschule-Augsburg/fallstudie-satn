@@ -1,3 +1,5 @@
+import threading
+
 from src.Classes.TaskPipeline.TaskForward import TaskForward
 from src.Classes.TaskPipeline.TaskTurn import TaskTurn
 import math
@@ -10,6 +12,7 @@ class LastStartPosition:
         "xDirect": None,
         "yDirect": None
     }
+    lock = threading.Lock()
 
 
 class LastZumoPos:
@@ -19,6 +22,7 @@ class LastZumoPos:
         "xDirect": None,
         "yDirect": None
     }
+    lock = threading.Lock()
 
 
 def get_zumo_direction(zumo_pos: dict):
@@ -29,18 +33,19 @@ def get_zumo_direction(zumo_pos: dict):
     :return: zumo position data including direction
     :rtype: dict
     """
-    if LastZumoPos.data.get("xCoord") is None:
-        LastZumoPos.data["xCoord"] = zumo_pos.get("xCoord")
-        LastZumoPos.data["yCoord"] = zumo_pos.get("yCoord")
-        return None
-    if zumo_pos.get("xCoord") != LastZumoPos.data.get("xCoord") or zumo_pos.get("yCoord") != LastZumoPos.data.get(
-            "yCoord"):
-        LastZumoPos.data["xDirect"] = zumo_pos.get("xCoord") - LastZumoPos.data.get("xCoord")
-        LastZumoPos.data["yDirect"] = zumo_pos.get("yCoord") - LastZumoPos.data.get("yCoord")
-        LastZumoPos.data["xCoord"] = zumo_pos.get("xCoord")
-        LastZumoPos.data["yCoord"] = zumo_pos.get("yCoord")
-    zumo_pos["xDirect"] = LastZumoPos.data["xDirect"]
-    zumo_pos["yDirect"] = LastZumoPos.data["yDirect"]
+    with LastZumoPos.lock:
+        if LastZumoPos.data.get("xCoord") is None:
+            LastZumoPos.data["xCoord"] = zumo_pos.get("xCoord")
+            LastZumoPos.data["yCoord"] = zumo_pos.get("yCoord")
+            return None
+        if zumo_pos.get("xCoord") != LastZumoPos.data.get("xCoord") or zumo_pos.get("yCoord") != LastZumoPos.data.get(
+                "yCoord"):
+            LastZumoPos.data["xDirect"] = zumo_pos.get("xCoord") - LastZumoPos.data.get("xCoord")
+            LastZumoPos.data["yDirect"] = zumo_pos.get("yCoord") - LastZumoPos.data.get("yCoord")
+            LastZumoPos.data["xCoord"] = zumo_pos.get("xCoord")
+            LastZumoPos.data["yCoord"] = zumo_pos.get("yCoord")
+        zumo_pos["xDirect"] = LastZumoPos.data["xDirect"]
+        zumo_pos["yDirect"] = LastZumoPos.data["yDirect"]
     return zumo_pos
 
 
@@ -71,17 +76,18 @@ def get_next_task(positions: dict):
             return get_task_for_destination(zumo, pushing_dest)
 
     # check if zumo is on last init position
-    if LastStartPosition.data.get("xCoord") is None or (
-            zumo.get("xCoord") == LastStartPosition.data.get("xCoord") and zumo.get(
-        "yCoord") == LastStartPosition.data.get("yCoord") and
-            abs(vector_to_angle(LastStartPosition.data.get("xDirect"),
-                                LastStartPosition.data.get("yDirect")) - vector_to_angle(
-                zumo.get("xDirect"), zumo.get("yDirect"))) <= 2):
-        # find obj the farthest away from under right corner
-        target: dict = min(positions.get("objects"), key=lambda d: d["xCoord"] + d["yCoord"])
-        LastStartPosition.data = get_pushing_pos(zumo, target)
-    # drive back to last init pos
-    return get_task_for_destination(zumo, LastStartPosition.data)
+    with LastStartPosition.lock:
+        if LastStartPosition.data.get("xCoord") is None or (
+                zumo.get("xCoord") == LastStartPosition.data.get("xCoord") and zumo.get(
+            "yCoord") == LastStartPosition.data.get("yCoord") and
+                abs(vector_to_angle(LastStartPosition.data.get("xDirect"),
+                                    LastStartPosition.data.get("yDirect")) - vector_to_angle(
+                    zumo.get("xDirect"), zumo.get("yDirect"))) <= 2):
+            # find obj the farthest away from under right corner
+            target: dict = min(positions.get("objects"), key=lambda d: d["xCoord"] + d["yCoord"])
+            LastStartPosition.data = get_pushing_pos(zumo, target)
+        # drive back to last init pos
+        return get_task_for_destination(zumo, LastStartPosition.data)
 
 
 def get_pushing_pos(zumo_pos: dict, object_pos: dict):
@@ -122,8 +128,9 @@ def get_task_for_destination(zumo_pos: dict, destination: dict):
         if math.isclose(current_angle, desired_angle, abs_tol=2):
             return TaskForward()  # Already aligned
         else:
-            LastZumoPos.data["xDirect"] = vector_x
-            LastZumoPos.data["yDirect"] = vector_y
+            with LastZumoPos.lock:
+                LastZumoPos.data["xDirect"] = vector_x
+                LastZumoPos.data["yDirect"] = vector_y
             return TaskTurn(desired_angle - current_angle)
 
     # Not at destination, need to turn toward movement vector
@@ -137,8 +144,9 @@ def get_task_for_destination(zumo_pos: dict, destination: dict):
     if abs(angle_diff) < 2:
         distance = int(math.sqrt(vector_x ** 2 + vector_y ** 2))
         return TaskForward(distance)
-    LastZumoPos.data["xDirect"] = vector_x
-    LastZumoPos.data["yDirect"] = vector_y
+    with LastZumoPos.lock:
+        LastZumoPos.data["xDirect"] = vector_x
+        LastZumoPos.data["yDirect"] = vector_y
 
     return TaskTurn(angle_diff)
 

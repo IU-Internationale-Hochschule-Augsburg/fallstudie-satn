@@ -119,7 +119,7 @@ def get_task_for_destination(zumo_pos: dict, destination: dict):
         current_angle = vector_to_angle(zumo_pos.get("xDirect"), zumo_pos.get("yDirect"))
         desired_angle = vector_to_angle(vector_x, vector_y)
 
-        if math.isclose(current_angle, desired_angle, abs_tol=1e-3):
+        if math.isclose(current_angle, desired_angle, abs_tol=2):
             return TaskForward()  # Already aligned
         else:
             LastZumoPos.data["xDirect"] = vector_x
@@ -134,7 +134,9 @@ def get_task_for_destination(zumo_pos: dict, destination: dict):
     current_angle = vector_to_angle(zumo_pos.get("xDirect"), zumo_pos.get("yDirect"))
 
     angle_diff = desired_angle - current_angle
-
+    if abs(angle_diff) < 2:
+        distance = int(math.sqrt(vector_x ** 2 + vector_y ** 2))
+        return TaskForward(distance)
     LastZumoPos.data["xDirect"] = vector_x
     LastZumoPos.data["yDirect"] = vector_y
 

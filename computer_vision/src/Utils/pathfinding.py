@@ -65,24 +65,25 @@ def get_next_task(positions: dict):
         if ((obj.get("xCoord") - zumo.get("xCoord")) ** 2) + ((obj.get("yCoord") - zumo.get("yCoord")) ** 2) <= (
                 (zumo.get("dx") + zumo.get("dy")) * .55) ** 2:
             # there is an object very close to zumo
-            pushing_dest = get_pushing_pos(zumo, obj)
-            if (math.isclose(zumo.get("xCoord"), pushing_dest.get("xCoord"), abs_tol=2)
-                    and math.isclose(zumo.get("yCoord"), pushing_dest.get("yCoord"), abs_tol=2)
-                    and math.isclose(vector_to_angle(pushing_dest.get("xDirect"), pushing_dest.get("yDirect")),
+            pushing_pos = get_pushing_pos(zumo, obj)
+            #check if zumo is on pushing position
+            if (math.isclose(zumo.get("xCoord"), pushing_pos.get("xCoord"), abs_tol=2)
+                    and math.isclose(zumo.get("yCoord"), pushing_pos.get("yCoord"), abs_tol=2)
+                    and math.isclose(vector_to_angle(pushing_pos.get("xDirect"), pushing_pos.get("yDirect")),
                                      vector_to_angle(zumo.get("xDirect"), zumo.get("yDirect")), abs_tol=2)):
-                # zumo is on pushing destination
+                # zumo is on pushing position
                 return TaskForward()
-            # zumo is not on pushing destination
-            return get_task_for_destination(zumo, pushing_dest)
+            # zumo is not on pushing position
+            return get_task_for_destination(zumo, pushing_pos)
 
     # check if zumo is on last init position
     with LastStartPosition.lock:
-        if LastStartPosition.data.get("xCoord") is None or (
-                zumo.get("xCoord") == LastStartPosition.data.get("xCoord") and zumo.get(
-            "yCoord") == LastStartPosition.data.get("yCoord") and
-                abs(vector_to_angle(LastStartPosition.data.get("xDirect"),
-                                    LastStartPosition.data.get("yDirect")) - vector_to_angle(
-                    zumo.get("xDirect"), zumo.get("yDirect"))) <= 2):
+        if LastStartPosition.data.get("xCoord") is None or (math.isclose(
+                zumo.get("xCoord"), LastStartPosition.data.get("xCoord"), abs_tol=5) and math.isclose(zumo.get(
+            "yCoord"), LastStartPosition.data.get("yCoord"), abs_tol=5) and
+                math.isclose(vector_to_angle(LastStartPosition.data.get("xDirect"),
+                                    LastStartPosition.data.get("yDirect")), vector_to_angle(
+                    zumo.get("xDirect"), zumo.get("yDirect")), abs_tol=4)):
             # find obj the farthest away from under right corner
             target: dict = min(positions.get("objects"), key=lambda d: d["xCoord"] + d["yCoord"])
             LastStartPosition.data = get_pushing_pos(zumo, target)

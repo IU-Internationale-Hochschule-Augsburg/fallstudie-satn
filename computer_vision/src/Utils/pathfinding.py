@@ -61,8 +61,7 @@ def get_next_task(positions: dict):
         return TaskForward(100)
     for obj in positions.get("objects"):
         # check if there is an object that is getting pushed by zumo
-        if ((obj.get("xCoord") - zumo.get("xCoord")) ** 2) + ((obj.get("yCoord") - zumo.get("yCoord")) ** 2) <= (
-                (zumo.get("dx") + zumo.get("dy")) * .55) ** 2:
+        if math.isclose(obj.get("yCoord")-zumo.get("dy"),zumo.get("yCoord"), abs_tol=10) and math.isclose(obj.get("xCoord")-zumo.get("dx"),zumo.get("xCoord"), abs_tol=10):
             # there is an object very close to zumo
             pushing_pos = get_pushing_pos(zumo, obj)
             #check if zumo is on pushing position

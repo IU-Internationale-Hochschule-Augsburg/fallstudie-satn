@@ -39,8 +39,10 @@ def get_zumo_direction(zumo_pos: dict):
         LastZumoPos.data["yDirect"] = zumo_pos.get("yCoord") - LastZumoPos.data.get("yCoord")
         LastZumoPos.data["xCoord"] = zumo_pos.get("xCoord")
         LastZumoPos.data["yCoord"] = zumo_pos.get("yCoord")
-    zumo_pos["xDirect"] = LastZumoPos.data["xDirect"]
-    zumo_pos["yDirect"] = LastZumoPos.data["yDirect"]
+    elif LastZumoPos.data.get("xDirect") is None:
+        return None
+    zumo_pos["xDirect"] = LastZumoPos.data.get("xDirect")
+    zumo_pos["yDirect"] = LastZumoPos.data.get("yDirect")
     return zumo_pos
 
 
@@ -66,8 +68,10 @@ def get_next_task(positions: dict):
                     and math.isclose(vector_to_angle(pushing_dest.get("xDirect"), pushing_dest.get("yDirect")),
                                      vector_to_angle(zumo.get("xDirect"), zumo.get("yDirect")), abs_tol=2)):
                 # zumo is on pushing destination
+                print("Pushing Forward")
                 return TaskForward()
             # zumo is not on pushing destination
+            print("Aimed Destination: ", vars(LastStartPosition.data))
             return get_task_for_destination(zumo, pushing_dest)
 
     # check if zumo is on last init position
@@ -81,6 +85,7 @@ def get_next_task(positions: dict):
         target: dict = min(positions.get("objects"), key=lambda d: d["xCoord"] + d["yCoord"])
         LastStartPosition.data = get_pushing_pos(zumo, target)
     # drive back to last init pos
+    print("Aimed Destination: ", vars(LastStartPosition.data))
     return get_task_for_destination(zumo, LastStartPosition.data)
 
 
@@ -133,8 +138,10 @@ def get_task_for_destination(zumo_pos: dict, destination: dict):
     desired_angle = vector_to_angle(vector_x, vector_y)
     current_angle = vector_to_angle(zumo_pos.get("xDirect"), zumo_pos.get("yDirect"))
 
-    angle_diff = desired_angle - current_angle
+    if math.isclose(current_angle, desired_angle, abs_tol=2):
+        return TaskForward()
 
+    angle_diff = desired_angle - current_angle
     LastZumoPos.data["xDirect"] = vector_x
     LastZumoPos.data["yDirect"] = vector_y
 

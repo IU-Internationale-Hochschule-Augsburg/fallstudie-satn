@@ -2,14 +2,15 @@ import cv2
 import itertools
 import numpy as np
 from src.Classes.FrameProcessor import FrameProcessor
-camera = FrameProcessor()
+
 
 
 class ObjectDetection:
     def __init__(self):
-        pass
+        self.camera = FrameProcessor()
+        self.camera.open()
 
-    def getZumoPosition(self, img, t=175, only_contours=False):
+    def get_zumo_position(self, img, t=50, only_contours=False):
         """
         Detects the position of a Zumo robot based on geometric feature similarity.
 
@@ -22,14 +23,12 @@ class ObjectDetection:
             dict | list: Position info or list of top contours.
         """
 
-        # Invert image colors to highlight bright areas (assuming dark background)
-        #inverted = cv2.bitwise_not(img)
 
         # ERROR: The variable 'blurred' is not defined, this should probably be 'inverted'
-        _, thresh = cv2.threshold(img, t, 255, cv2.THRESH_BINARY)
+        _, thresh = cv2.threshold(img, t, 255, cv2.THRESH_BINARY_INV)
 
         # Find external contours in the thresholded image
-        contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        contours, _ = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
         # Sort contours by area (descending), pick the top 5 largest ones
         sorted_contours = sorted(contours, key=cv2.contourArea, reverse=True)
@@ -40,32 +39,33 @@ class ObjectDetection:
 
         # Try to find the most similar pair of contours to detect Zumo's markers
         best_pair = None
-        best_score = 0.0
+        best_score = 999
 
         for rect1, rect2 in itertools.combinations(top_contours, 2):
             # Extract features from both contours
-            area1, aspect1, x1, y1, w1, h1 = self.identify_features(rect1).values()
-            area2, aspect2, x2, y2, w2, h2 = self.identify_features(rect2).values()
+            if rect1 is None or rect2 is None:
+                return None
+            (x1, y1), (w1, h1), angle1 = cv2.minAreaRect(rect1)
+            (x2, y2), (w2, h2), angle2 = cv2.minAreaRect(rect2)
 
-            # Compute geometric differences
-            area_diff = abs(area1 - area2) / max(area1, area2)
-            ratio_diff = abs(aspect1 - aspect2) / max(aspect1, aspect2)
-            y_diff = abs(y1 - y2)
-            x_diff = abs(x1 - x2)
+            fitness_score = 0
+            # width health
+            fitness_score += (w1 / w2) ** 2
 
-            # Compute a score: smaller is better
-            score = (
-                    area_diff * 3 +
-                    ratio_diff * 2 +
-                    y_diff * 0.1 -
-                    x_diff * 2
-            )
+            #hight health
+            fitness_score += (h1 / h2) ** 2
 
-            if score < best_score:
+            #angle health
+            fitness_score += (angle1 / angle2) ** 2
+
+
+            if fitness_score < best_score:
                 best_pair = (rect1, rect2)
-                best_score = score
+                best_score = fitness_score
 
         # If a pair was found, return bounding box around both
+        if best_pair is None:
+            return None
         x1, y1, w1, h1 = cv2.boundingRect(best_pair[0])
         x2, y2, w2, h2 = cv2.boundingRect(best_pair[1])
 
@@ -76,7 +76,7 @@ class ObjectDetection:
             'dy': h1
         }
 
-    def get_object_position(self, img, t=115, min_area=500, only_contours=False):
+    def get_object_position(self, img, t=100, min_area=300, only_contours=False):
         """
         Detects all objects in the image that are not part of the Zumo robot.
 
@@ -89,27 +89,33 @@ class ObjectDetection:
         Returns:
             list: Object position dictionaries or contours.
         """
+
         # Get Zumo position to exclude it from object detection
-        zumo_data = self.getZumoPosition(img)
-        _, tresh = cv2.threshold(img, t, 255, cv2.THRESH_BINARY_INV)
+        zumo_data = self.get_zumo_position(img)
+        if zumo_data is None:
+            print("No Zumo detected")
+            return None
+        _, tresh = cv2.threshold(img, t, 190, cv2.THRESH_BINARY_INV)
 
         # Detect contours
         contours, _ = cv2.findContours(tresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-        # Filter contours by minimum area
-        filterd_contours = [cnt for cnt in contours if cv2.contourArea(cnt) > min_area]
-        zumo_x, zumo_y, zumo_w, zumo_h = zumo_data.values()
+        if zumo_data is not None:
+            zumo_x, zumo_y, zumo_w, zumo_h = zumo_data.values()
 
         if only_contours:
-            return filterd_contours
+            return contours
 
         objects = []
 
-        for cnt in filterd_contours:
+        for cnt in contours:
             x, y, w, h = cv2.boundingRect(cnt)
 
             # Exclude objects too close to Zumo robot's position
-            if abs(x - zumo_x) < w and abs(y - zumo_y) < h:
+            if zumo_data is None or (zumo_data is not None and (abs(x - zumo_x) < w and abs(y - zumo_y) < h)):
+                continue
+
+            if w * h < min_area:
                 continue
 
             # Add object bounding box
@@ -119,10 +125,10 @@ class ObjectDetection:
                 'dx': w,
                 'dy': h
             })
-
+        print("objects", objects)
         return objects
 
-    def crop_image(self, gray_img, dark_thresh=118):
+    def crop_image(self, gray_img, dark_thresh=90):
         """
         Crops the main region of interest (ROI) based on dark borders and edge detection.
 
@@ -202,17 +208,19 @@ class ObjectDetection:
         }
 
     def handle_object_detection_from_source(self):
-        ok, gray_frame = camera.get_frame()  # get_frame gibt JPEG-Bytes zurück
+        print("handle object detection from source")
+        ok, gray_frame = self.camera.get_frame()  # get_frame gibt JPEG-Bytes zurück
 
-        if ok and gray_frame is not None:
-            cropped = od.crop_image(gray_img)
-            obj_pos = selg.get_object_position(cropped)
-            zumo_pos = selg.get_zumo_position(cropped)
-            print(obj_pos)
-            print(zumo_pos)
 
-            return {
-                'zumo': zumo_pos,
-                'objects': obj_pos
-            }
-        return None
+        obj_pos = self.get_object_position(gray_frame)
+        zumo_pos = self.get_zumo_position(gray_frame)
+
+        print(obj_pos)
+        print(zumo_pos)
+        self.camera.release()
+        return {
+            'zumo': zumo_pos,
+            'objects': obj_pos
+        }
+
+

@@ -32,14 +32,13 @@ Entwicklung einer geeigneten Engagement-Strategie:
     * Anpassungen der Stakeholder-Analyse an geänderte Umstände
 
 ## Stakeholder-Register
-| Name | Position | Kategorie | Anforderungen | Einfluss | Einstellung | Konfliktpotenzial | Rolle | E-mail Addresse | Kommunikationsfrequenz | Anmerkung |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Joachim Schlosser | Prof. Dr. | intern | Qualitätssicherung | gering | unterstützend | niedrig | Abnehmer | joachim.schlosser@iu.org | 1x/Woche | Wartezeiten gering halten |
-| Sascha Sprengler |  | intern | Dokumentation | hoch | unterstützend | niedrig | Entwicklung, PM | sascha.sprengler@iu-study.org | 1x/Woche | Verfasser |
-| Korbinian Müller | Fachinformatiker | intern | Code-Qualität und Standards | hoch | unterstützend | niedrig | Entwicklung, PM | korbinian.mueller@iu-study.org | 1x/Woche | 3D-Drucker |
-| Oliver Berndt |  | intern | Code-Qualität und Standards | hoch | unterstützend | niedrig | Entwicklung, PM | oliver.berndt@iu-study.org | 1x/Woche | hohe Python-Erfahrung |
-| Paul Weiß |  | intern | ? | hoch | unterstützend | niedrig | Entwicklung | paul.weiss@iu-study.org | 1x/Woche |  |
-| Ayse Cirakoglu |  | intern | ? | hoch | unterstützend | niedrig | Entwicklung | ayse.cirakoglu@iu-study.org | 2x/Monat |  |
+| Name | Position | Kategorie | Anforderungen | Einfluss | Rolle | Kommunikationsfrequenz | Anmerkung |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Joachim Schlosser | Prof. Dr. | intern | Qualitätssicherung | gering | Abnehmer | 1x/Woche | Wartezeiten gering halten |
+| Sascha Sprengler |  | intern | Dokumentation | hoch | Entwicklung, PM | 1x/Woche | Verfasser |
+| Korbinian Müller | Fachinformatiker | intern | Code-Qualität und Standards | hoch | Entwicklung, PM | 1x/Woche | 3D-Drucker |
+| Oliver Berndt |  | intern | Code-Qualität und Standards | hoch | Entwicklung, PM | 1x/Woche | hohe Python-Erfahrung |
+| Paul Weiß |  | intern | ? | hoch | Entwicklung | 1x/Woche |  |
 
 ## Power-Index-Matrix
 ![Power-Index-Matrix](Bilder/riskmanagement-matrix.png)

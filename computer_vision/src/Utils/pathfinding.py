@@ -1,5 +1,4 @@
 import threading
-
 from src.Classes.TaskPipeline.TaskForward import TaskForward
 from src.Classes.TaskPipeline.TaskTurn import TaskTurn
 import math

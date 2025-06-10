@@ -2,7 +2,7 @@ Flask==3.1.0
 Jinja2==3.1.6
 matplotlib==3.10.1
 numpy==2.1.1
-opencv-python==4.11.0.86
+opencv-python-headless==4.11.0.86
 picamera2==0.3.25
 simplejpeg==1.8.2
 Werkzeug==3.1.3

@@ -1,34 +1,22 @@
 import cv2
+from src.Classes.ObjectDetection.object_detection import ObjectDetection
 
-cv2.namedWindow("preview")
-vc = cv2.VideoCapture(0)
-vc.set(cv2.CAP_PROP_FRAME_WIDTH, 854)
-vc.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+img = cv2.imread('img2.jpg')
+cv2.imshow('img', img)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+img_edited = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-if vc.isOpened(): # try to get the first frame
-    rval, frame = vc.read()
-else:
-    rval = False
-
-ret, frame = vc.read()
-print("Eingestellte Auflösung",frame.shape[1]," x ", frame.shape[0])
-while rval:
-    #contrast erhöhen
-    alpha = 2.0
-    beta = 0
-    contrast_enhanced = cv2.convertScaleAbs(frame, alpha=alpha, beta=beta)
-
-    #grey scale
-    gray = cv2.cvtColor(contrast_enhanced, cv2.COLOR_BGR2GRAY)
-
-    denoised = cv2.medianBlur(gray, ksize=3)
-
-    cv2.imshow("preview", denoised)
-
-    rval, frame = vc.read()
-    key = cv2.waitKey(20)
-    if key == 27: # exit on ESC
-        break
-
-cv2.destroyWindow("preview")
-vc.release()
+od = ObjectDetection()
+cropped_img = od.crop_image(img_edited)
+cv2.imshow('cropped_img', cropped_img)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+objects = od.get_object_position(cropped_img)
+zumo = od.get_zumo_position(cropped_img)
+positions = {
+    "zumo": zumo,
+    "objects": objects
+}
+print(positions)
+#print(vars(get_next_task(positions)))

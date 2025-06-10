@@ -1,106 +1,149 @@
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 import numpy as np
 import cv2
-import threading
 
-# Import the FrameProcessor class
-from src.Classes.frame_processor import FrameProcessor, Picamera2
+from src.Classes.FrameProcessor import FrameProcessor
 
 class TestFrameProcessor(unittest.TestCase):
-    def setUp(self):
-        self.height = 720
-        self.width = 1280
-        self.sample_frame = np.ones((self.height, self.width, 3), dtype=np.uint8) * 127
-        self.processor = FrameProcessor()
+    def test_init_defaults(self):
+        fp = FrameProcessor()
+        self.assertEqual(fp.width, 1280)
+        self.assertEqual(fp.height, 720)
+        self.assertEqual(fp.alpha, 2.0)
+        self.assertEqual(fp.beta, 0)
+        self.assertEqual(fp.blur_ksize, 3)
+        self.assertIsNone(fp.picam2)
 
-        patcher = patch('src.Classes.frame_processor.Picamera2')
-        self.mock_picam2_class = patcher.start()
-        self.addCleanup(patcher.stop)
+    @patch('src.Classes.FrameProcessor.Picamera2')
+    def test_open_initializes_and_starts(self, mock_picam_cls):
+        mock_picam = MagicMock()
+        mock_picam_cls.return_value = mock_picam
+        fp = FrameProcessor()
+        fp.open()
+        mock_picam_cls.assert_called_once()
+        mock_picam.start.assert_called_once()
+        self.assertIs(fp.picam2, mock_picam)
 
-        self.mock_picam2 = MagicMock()
-        self.mock_picam2.create_preview_configuration.return_value = 'config'
-        self.mock_picam2.capture_array.return_value = self.sample_frame
-        self.mock_picam2_class.return_value = self.mock_picam2
+    @patch('src.Classes.FrameProcessor.Picamera2')
+    def test_open_idempotent(self, mock_picam_cls):
+        fp = FrameProcessor()
+        fp.picam2 = MagicMock()
+        fp.open()  # should do nothing
+        mock_picam_cls.assert_not_called()
 
-    def test_open_initializes_camera(self):
-        self.processor.open()
+    def test_release_when_open(self):
+        fp = FrameProcessor()
+        mock_picam = MagicMock()
+        fp.picam2 = mock_picam
+        fp.release()
+        mock_picam.stop.assert_called_once()
+        mock_picam.close.assert_called_once()
+        self.assertIsNone(fp.picam2)
 
-        self.mock_picam2_class.assert_called_once()
-        self.mock_picam2.create_preview_configuration.assert_called_with(
-            main={"format": 'RGB888', "size": (self.processor.width, self.processor.height)}
-        )
-        self.mock_picam2.configure.assert_called_once_with('config')
-        self.mock_picam2.start.assert_called_once()
-        self.assertTrue(self.processor.running)
+    def test_release_when_none(self):
+        fp = FrameProcessor()
+        fp.picam2 = None
+        # should not raise
+        fp.release()
+        self.assertIsNone(fp.picam2)
 
-    def test_capture_loop_updates_frame(self):
-        self.processor.picam2 = self.mock_picam2
-        self.processor.running = True
-        self.mock_picam2.capture_array.side_effect = [self.sample_frame, Exception("Stop")]
-        with self.assertRaises(Exception):
-            self.processor._capture_loop()
-        self.assertTrue(np.array_equal(self.processor.frame, self.sample_frame))
+    def test__process_frame(self):
+        # create a small RGB image (3x3)
+        img = np.zeros((3,3,3), dtype=np.uint8)
+        # set a pixel to white
+        img[1,1] = [255,255,255]
+        # use blur_ksize=1 to avoid median blur effect
+        fp = FrameProcessor(alpha=1.0, beta=0, blur_ksize=1)
+        out = fp._process_frame(img)
+        # output should be grayscale shape (3,3)
+        self.assertEqual(out.shape, (3,3))
+        # center pixel should be 255 after conversion and blur
+        self.assertEqual(out[1,1], 255)
 
-    def test_release_stops_camera(self):
-        self.processor.running = True
-        self.processor.picam2 = self.mock_picam2
-
-        self.processor.release()
-
-        self.assertFalse(self.processor.running)
-        self.mock_picam2.stop.assert_called_once()
-        self.assertIsNone(self.processor.picam2)
-
-    def test_process_frame_outputs_grayscale_image(self):
-        result = self.processor._process_frame(self.sample_frame)
-        self.assertEqual(result.ndim, 2)
-        self.assertEqual(result.shape, (self.height, self.width))
-        self.assertTrue((0 <= result).all() and (result <= 255).all())
-
-    def test_get_frame_raises_if_not_opened(self):
-        with self.assertRaises(RuntimeError):
-            self.processor.get_frame()
-
-    def test_get_frame_returns_false_if_no_frame(self):
-        self.processor.running = True
-        self.processor.frame = None
-        ok, jpeg = self.processor.get_frame()
+    def test_get_frame_no_camera(self):
+        fp = FrameProcessor()
+        ok, data = fp.get_frame()
         self.assertFalse(ok)
-        self.assertIsNone(jpeg)
+        self.assertIsNone(data)
 
-    def test_get_frame_returns_jpeg_if_successful(self):
-        self.processor.running = True
-        self.processor.frame = self.sample_frame
-        ok, jpeg = self.processor.get_frame()
+    def test_get_frame_capture_exception(self):
+        fp = FrameProcessor()
+        mock_picam = MagicMock()
+        mock_picam.capture_array.side_effect = Exception("Kamera-Fehler")
+        fp.picam2 = mock_picam
+        ok, data = fp.get_frame()
+        self.assertFalse(ok)
+        self.assertIsNone(data)
+        # ensure release cleared picam2
+        self.assertIsNone(fp.picam2)
+
+    def test_get_frame_capture_none(self):
+        fp = FrameProcessor()
+        mock_picam = MagicMock()
+        mock_picam.capture_array.return_value = None
+        fp.picam2 = mock_picam
+        ok, data = fp.get_frame()
+        self.assertFalse(ok)
+        self.assertIsNone(data)
+
+    def test_get_frame_success_no_perspective(self):
+        fp = FrameProcessor()
+        # create a BGR grayscale frame for simplicity
+        frame = np.ones((5,5,3), dtype=np.uint8) * 100
+        mock_picam = MagicMock()
+        mock_picam.capture_array.return_value = frame
+        fp.picam2 = mock_picam
+        ok, data = fp.get_frame()
         self.assertTrue(ok)
-        self.assertTrue(jpeg.startswith(b'\xff\xd8') and jpeg.endswith(b'\xff\xd9'))
+        # no rectangle yields None
+        self.assertIsNone(data)
 
-    def test_get_frame_returns_false_if_encoding_fails(self):
-        with patch('src.Classes.frame_processor.cv2.imencode', return_value=(False, None)):
-            self.processor.running = True
-            self.processor.frame = self.sample_frame
-            ok, jpeg = self.processor.get_frame()
-            self.assertFalse(ok)
-            self.assertIsNone(jpeg)
-
-    def test_frame_generator_yields_and_releases(self):
-        self.processor.running = True
-
-        sequence = [(True, b'image1'), (True, b'image2')]
-        self.processor.get_frame = MagicMock(side_effect=sequence + [Exception("stop")])
-
-        gen = self.processor.frame_generator()
-
-        frame1 = next(gen)
-        self.assertIn(b'image1', frame1)
-        frame2 = next(gen)
-        self.assertIn(b'image2', frame2)
-
-        with self.assertRaises(Exception):
+    def test_frame_generator(self):
+        fp = FrameProcessor()
+        # stub get_frame: first False, then True, then StopIteration
+        seq = [(False, None), (True, b'data'), StopIteration()]
+        fp.get_frame = MagicMock(side_effect=seq)
+        fp.release = MagicMock()
+        gen = fp.frame_generator()
+        # get first yielded frame
+        frame_bytes = next(gen)
+        expected = b'--frame\r\nContent-Type: image/jpeg\r\n\r\n' + b'data' + b'\r\n'
+        self.assertEqual(frame_bytes, expected)
+        # next should raise StopIteration
+        with self.assertRaises(StopIteration):
             next(gen)
+        # release called in finally
+        fp.release.assert_called_once()
 
-        self.assertFalse(self.processor.running)
+    def test_fix_perspective_no_contour(self):
+        fp = FrameProcessor()
+        # blank image
+        img = np.zeros((10,10), dtype=np.uint8)
+        out = fp.fix_perspective(img)
+        self.assertIsNone(out)
+
+    def test_fix_perspective_with_rectangle(self):
+        fp = FrameProcessor()
+        # create binary image with white rectangle
+        img = np.zeros((500,500), dtype=np.uint8)
+        cv2.rectangle(img, (50,50), (150,100), 255, -1)
+        warped = fp.fix_perspective(img)
+        # warped should have shape (400,300)
+        self.assertIsNotNone(warped)
+        self.assertEqual(warped.shape, (400,300))
+
+    def test_order_points(self):
+        fp = FrameProcessor()
+        pts = np.array([[1,2],[3,4],[5,0],[0,0]], dtype="float32")
+        rect = fp.order_points(pts)
+        # rect[0] is top-left (min sum)
+        sums = rect.sum(axis=1)
+        self.assertTrue(np.argmin(sums) == 0)
+        # rect[2] is bottom-right (max sum)
+        self.assertTrue(np.argmax(sums) == 2)
+        # rect has shape (4,2)
+        self.assertEqual(rect.shape, (4,2))
 
 if __name__ == '__main__':
     unittest.main()

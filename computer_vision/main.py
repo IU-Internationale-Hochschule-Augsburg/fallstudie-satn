@@ -1,13 +1,15 @@
-from flask import Flask, Response
+from flask import Flask, Response, request
 from flask import render_template
 import json
-#from src.Classes.frame_processor import *
-from src.Classes.TaskPipeline.TaskPipeline import *
 from src.Classes.TaskPipeline.TaskForward import *
 from src.Classes.TaskPipeline.TaskTurn import *
+from src.Classes.TaskPipeline.TaskPipeline import *
+from src.Classes.ObjectDetection.ObjectDetection import *
+import cv2
+from time import sleep
 
 app = Flask(__name__)
-#camera = FrameProcessor()
+
 
 
 @app.route('/info')
@@ -29,34 +31,6 @@ def data():
     }
     return json.dumps(coordinat_data)
 
-
-@app.route('/videoCapture')
-def video_capture():
-    """Direkte MJPEG-Ausgabe aus der Kamera."""
-    try:
-        camera.open()
-    except RuntimeError as e:
-        app.logger.error(f"Kamera konnte nicht geöffnet werden: {e}")
-        return str(e), 500
-
-    def generate():
-        while True:
-            try:
-                ok, jpeg = camera.get_frame()
-                if not ok:
-                    continue
-                yield (b'--frame\r\n'
-                       b'Content-Type: image/jpeg\r\n\r\n' + jpeg + b'\r\n')
-            except Exception as e:
-                app.logger.error(f"Fehler beim Streamen: {e}")
-                break
-
-    return Response(generate(), mimetype='multipart/x-mixed-replace; boundary=frame')
-
-
-@app.route('/liveStream')
-def liveStream():
-    return render_template('liveStream.html')
 
 
 @app.route('/task', methods=['POST'])
@@ -101,6 +75,16 @@ def get_task():
 @app.route('/manualControl', methods=['GET'])
 def manual_control():
     return render_template('manual_control.html')
+
+@app.route('/zumo-position', methods=['GET'])
+def zumo_position():
+    od = ObjectDetection()
+    positions:dict = od.handle_object_detection_from_source()
+    zumo_position_data = positions.get("zumo")
+    if zumo_position_data is None:
+        return Response(status=500)
+    zumo_position_data = get_zumo_direction(zumo_position_data)
+    return Response(status=200, response=json.dumps(zumo_position_data), mimetype='application/json')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, threaded=True)

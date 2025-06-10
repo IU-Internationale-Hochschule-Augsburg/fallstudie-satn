@@ -12,7 +12,7 @@ A4990MotorShield motors;
 int status = WL_IDLE_STATUS;
 
 // IP und Port des Flask Servers
-const char* server = "7.32.120.137";
+const char* server = "7.32.120.180";
 const int port = 5000;
 
 unsigned long lastRequestTime = 0;
@@ -78,8 +78,8 @@ void loop() {
     if (client.connect(server, port)) {
       Serial.println("Verbunden mit Server");
 
-      // HTTP-GET-Anfrage an /task/turn senden
-      client.print("GET /task/turn HTTP/1.1\r\n");
+      // HTTP-GET-Anfrage an /task senden
+      client.print("GET /task HTTP/1.1\r\n");
       client.print("Host: ");
       client.print(server);
       client.print(":");
@@ -87,13 +87,23 @@ void loop() {
       client.print("\r\n");
       client.print("Connection: close\r\n\r\n");
 
-      delay(500);  // kurze Wartezeit für Antwort
+      // Warte kurz, bis Daten eintreffen (bis zu 2 s)
+      unsigned long startWait = millis();
+      while (!client.available() && millis() - startWait < 2000) {
+        // einfach warten
+      }
 
-      // Antwort einlesen
       String response = "";
       while (client.available()) {
-        response += (char)client.read();
+        char c = client.read();
+        response += c;
       }
+
+      // Lies die Status‐Line
+      String statusLine = client.readStringUntil('\r');
+      Serial.println("Status-Line: ");
+      Serial.println(statusLine);
+      client.readStringUntil('\n'); // Rest der Zeile verwerfen
 
       Serial.println("______________HTTP______________");
       Serial.println("Antwort erhalten:");
@@ -129,8 +139,8 @@ void loop() {
 
       if (type == "forward") {
         // Dauer des Fahren auslesen
-        String durationStr = (const char*) myObject["duration"];
-        int duration = durationStr.toInt();
+        int duration = round((double) myObject["duration"]);
+
 
         Serial.print("Dauer: ");
         Serial.println(duration);
@@ -143,15 +153,15 @@ void loop() {
 
       } else if (type == "turn") {
         // Winkel auslesen
-        String angleStr = (const char*) myObject["angle"];
-        float angle = angleStr.toFloat();
+        float angle = (float)(double) myObject["angle"];
+
 
         Serial.print("Winkel: ");
         Serial.println(angle);
 
         // Drehen auf der Stelle
         turnOnSpot(angle);
-
+  
       } else {
         Serial.println("Unbekannter Typ!");
       }

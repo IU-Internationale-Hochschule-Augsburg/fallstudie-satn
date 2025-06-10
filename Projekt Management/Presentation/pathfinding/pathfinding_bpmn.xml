@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="bpmn-js (https://demo.bpmn.io)" exporterVersion="18.6.1">
+  <bpmn:process id="Process_1" isExecutable="false">
+    <bpmn:startEvent id="StartEvent_1" name="Start">
+      <bpmn:outgoing>Flow_0gedtpl</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Task_CheckObjects" name="Check for nearby objects">
+      <bpmn:incoming>Flow_0gedtpl</bpmn:incoming>
+      <bpmn:outgoing>Flow_1fiqdzt</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="Gateway_ObjectClose" name="Object close to zumo?">
+      <bpmn:incoming>Flow_1fiqdzt</bpmn:incoming>
+      <bpmn:outgoing>Flow_160ugwl</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Task_GetPushPos" name="Get pushing position">
+      <bpmn:incoming>Flow_160ugwl</bpmn:incoming>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="Gateway_OnPushPos" name="Zumo on pushing position?">
+      <bpmn:outgoing>Flow_1dzrg6j</bpmn:outgoing>
+      <bpmn:outgoing>Flow_1wvi2hy</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Gateway_OnInitPos" name="Zumo on Init position?">
+      <bpmn:outgoing>Flow_0yv45t2</bpmn:outgoing>
+      <bpmn:outgoing>Flow_0lmgj63</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="Task_FindTarget" name="Find farthest object">
+      <bpmn:incoming>Flow_0yv45t2</bpmn:incoming>
+      <bpmn:outgoing>Flow_1g7x5u5</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:task id="Task_SetLastStart" name="Set init position to pushing positon for farthest object">
+      <bpmn:incoming>Flow_1wg8p5w</bpmn:incoming>
+      <bpmn:outgoing>Flow_0h6qv3e</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="EndEvent" name="Return Task to get to init position">
+      <bpmn:incoming>Flow_0h6qv3e</bpmn:incoming>
+      <bpmn:incoming>Flow_0lmgj63</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_7" sourceRef="Task_GetPushPos" targetRef="Gateway_OnPushPos" />
+    <bpmn:sequenceFlow id="Flow_10" name="no" sourceRef="Gateway_ObjectClose" targetRef="Gateway_OnInitPos" />
+    <bpmn:sequenceFlow id="Flow_1fiqdzt" sourceRef="Task_CheckObjects" targetRef="Gateway_ObjectClose" />
+    <bpmn:sequenceFlow id="Flow_160ugwl" name="yes" sourceRef="Gateway_ObjectClose" targetRef="Task_GetPushPos" />
+    <bpmn:sequenceFlow id="Flow_0yv45t2" name="yes / init position not defined" sourceRef="Gateway_OnInitPos" targetRef="Task_FindTarget" />
+    <bpmn:sequenceFlow id="Flow_0gedtpl" sourceRef="StartEvent_1" targetRef="Task_CheckObjects" />
+    <bpmn:task id="Activity_07grilh" name="Get pushing position for farthest object">
+      <bpmn:incoming>Flow_1g7x5u5</bpmn:incoming>
+      <bpmn:outgoing>Flow_1wg8p5w</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow_1g7x5u5" sourceRef="Task_FindTarget" targetRef="Activity_07grilh" />
+    <bpmn:sequenceFlow id="Flow_1wg8p5w" sourceRef="Activity_07grilh" targetRef="Task_SetLastStart" />
+    <bpmn:endEvent id="Event_1h2g46a" name="Return TaskForward()">
+      <bpmn:incoming>Flow_1dzrg6j</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_0h6qv3e" sourceRef="Task_SetLastStart" targetRef="EndEvent" />
+    <bpmn:sequenceFlow id="Flow_0lmgj63" sourceRef="Gateway_OnInitPos" targetRef="EndEvent" />
+    <bpmn:sequenceFlow id="Flow_1dzrg6j" name="yes" sourceRef="Gateway_OnPushPos" targetRef="Event_1h2g46a" />
+    <bpmn:endEvent id="Event_04fhswl" name="Return task to get to pushing position">
+      <bpmn:incoming>Flow_1wvi2hy</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1wvi2hy" name="no" sourceRef="Gateway_OnPushPos" targetRef="Event_04fhswl" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_1">
+      <bpmndi:BPMNShape id="Task_CheckObjects_di" bpmnElement="Task_CheckObjects">
+        <dc:Bounds x="380" y="220" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_ObjectClose_di" bpmnElement="Gateway_ObjectClose" isMarkerVisible="true">
+        <dc:Bounds x="405" y="355" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="393" y="413" width="74" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_1">
+        <dc:Bounds x="380" y="100" width="100" height="80" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="417" y="76" width="25" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_OnInitPos_di" bpmnElement="Gateway_OnInitPos" isMarkerVisible="true">
+        <dc:Bounds x="225" y="425" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="151.5" y="436" width="63" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_SetLastStart_di" bpmnElement="Task_SetLastStart">
+        <dc:Bounds x="300" y="700" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_07grilh_di" bpmnElement="Activity_07grilh">
+        <dc:Bounds x="300" y="590" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_FindTarget_di" bpmnElement="Task_FindTarget">
+        <dc:Bounds x="300" y="470" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_GetPushPos_di" bpmnElement="Task_GetPushPos">
+        <dc:Bounds x="540" y="410" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_OnPushPos_di" bpmnElement="Gateway_OnPushPos" isMarkerVisible="true">
+        <dc:Bounds x="565" y="515" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="547" y="576" width="86" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_di" bpmnElement="EndEvent">
+        <dc:Bounds x="250" y="840" width="100" height="80" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="257" y="930" width="86" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_1ehw5vk" bpmnElement="Event_1h2g46a">
+        <dc:Bounds x="430" y="500" width="100" height="80" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="445" y="590" width="71" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_06r8qmw" bpmnElement="Event_04fhswl">
+        <dc:Bounds x="650" y="500" width="100" height="80" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="657" y="590" width="88" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_7_di" bpmnElement="Flow_7">
+        <di:waypoint x="590" y="490" />
+        <di:waypoint x="590" y="515" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_10_di" bpmnElement="Flow_10">
+        <di:waypoint x="405" y="380" />
+        <di:waypoint x="250" y="380" />
+        <di:waypoint x="250" y="425" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="330" y="362" width="13" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1fiqdzt_di" bpmnElement="Flow_1fiqdzt">
+        <di:waypoint x="430" y="300" />
+        <di:waypoint x="430" y="355" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_160ugwl_di" bpmnElement="Flow_160ugwl">
+        <di:waypoint x="455" y="380" />
+        <di:waypoint x="590" y="380" />
+        <di:waypoint x="590" y="410" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="504" y="362" width="17" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0yv45t2_di" bpmnElement="Flow_0yv45t2">
+        <di:waypoint x="275" y="450" />
+        <di:waypoint x="350" y="450" />
+        <di:waypoint x="350" y="470" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="272" y="416" width="81" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0gedtpl_di" bpmnElement="Flow_0gedtpl">
+        <di:waypoint x="430" y="190" />
+        <di:waypoint x="430" y="220" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1g7x5u5_di" bpmnElement="Flow_1g7x5u5">
+        <di:waypoint x="350" y="550" />
+        <di:waypoint x="350" y="590" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1wg8p5w_di" bpmnElement="Flow_1wg8p5w">
+        <di:waypoint x="350" y="670" />
+        <di:waypoint x="350" y="700" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0h6qv3e_di" bpmnElement="Flow_0h6qv3e">
+        <di:waypoint x="350" y="780" />
+        <di:waypoint x="350" y="805" />
+        <di:waypoint x="300" y="805" />
+        <di:waypoint x="300" y="830" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0lmgj63_di" bpmnElement="Flow_0lmgj63">
+        <di:waypoint x="250" y="475" />
+        <di:waypoint x="250" y="810" />
+        <di:waypoint x="300" y="810" />
+        <di:waypoint x="300" y="830" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1dzrg6j_di" bpmnElement="Flow_1dzrg6j">
+        <di:waypoint x="565" y="540" />
+        <di:waypoint x="530" y="540" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="551" y="522" width="17" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1wvi2hy_di" bpmnElement="Flow_1wvi2hy">
+        <di:waypoint x="615" y="540" />
+        <di:waypoint x="650" y="540" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="626" y="522" width="13" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

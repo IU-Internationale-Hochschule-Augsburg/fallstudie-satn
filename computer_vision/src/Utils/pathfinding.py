@@ -118,7 +118,7 @@ def get_task_for_destination(zumo_pos: dict, destination: dict):
     :rtype: Task
     """
     # Check if position is the same
-    if zumo_pos.get("xCoord") == destination.get("xCoord") and zumo_pos.get("yCoord") == destination.get("yCoord"):
+    if math.isclose(zumo_pos.get("xCoord"), destination.get("xCoord"), abs_tol=5) and math.isclose(zumo_pos.get("yCoord"), destination.get("yCoord"), abs_tol=5):
         # We are already at the destination, check if orientation matches
         vector_x = destination.get("xDirect")
         vector_y = destination.get("yDirect")

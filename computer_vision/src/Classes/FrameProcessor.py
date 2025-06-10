@@ -5,6 +5,7 @@ except ImportError:
     Preview = None
 
 import cv2
+import numpy as np
 
 class FrameProcessor:
     """
@@ -87,7 +88,8 @@ class FrameProcessor:
 
         # Verarbeiten
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        return True, gray
+        fixed = self.fix_perspective(gray)
+        return True, fixed
 
     def frame_generator(self):
         """
@@ -95,10 +97,61 @@ class FrameProcessor:
         """
         try:
             while True:
-                ok, jpeg = self.get_frame()
+                try:
+                    ok, jpeg = self.get_frame()
+                except StopIteration:
+                    break
                 if not ok:
                     continue
                 yield (b'--frame\r\n'
                        b'Content-Type: image/jpeg\r\n\r\n' + jpeg + b'\r\n')
         finally:
             self.release()
+
+    def fix_perspective(self,img):
+        _, tresh = cv2.threshold(img, 170, 255, cv2.THRESH_BINARY)
+
+        contours, hierarchy = cv2.findContours(tresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+        if hierarchy is None or len(hierarchy) == 0:
+            return None
+
+        hierarchy = hierarchy[0]
+
+        for i, contour in enumerate(contours):
+            if hierarchy[i][3] == -1:
+                peri = cv2.arcLength(contour, True)
+                approx = cv2.approxPolyDP(contour, 0.02 * peri, True)
+
+                if len(approx) == 4 and cv2.isContourConvex(approx):
+                    pts = approx.reshape(4, 2)
+                    rect = self.order_points(pts)
+
+                    # Zielrechteck (z. B. 300x400 px)
+                    width, height = 300, 400
+                    dst = np.array([
+                        [0, 0],
+                        [width - 1, 0],
+                        [width - 1, height - 1],
+                        [0, height - 1]
+                    ], dtype="float32")
+
+                    # Transformation berechnen und anwenden
+                    M = cv2.getPerspectiveTransform(rect, dst)
+                    warped = cv2.warpPerspective(img, M, (width, height))
+
+                    return warped
+
+    def order_points(self,pts):
+        # Punkte sortieren: [top-left, top-right, bottom-right, bottom-left]
+        rect = np.zeros((4, 2), dtype="float32")
+
+        s = pts.sum(axis=1)
+        rect[0] = pts[np.argmin(s)]
+        rect[2] = pts[np.argmax(s)]
+
+        diff = np.diff(pts, axis=1)
+        rect[1] = pts[np.argmin(diff)]
+        rect[3] = pts[np.argmax(diff)]
+
+        return rect

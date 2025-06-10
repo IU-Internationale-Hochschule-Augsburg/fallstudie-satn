@@ -1,99 +1,159 @@
 import unittest
 from unittest.mock import patch, MagicMock
 import numpy as np
-from src.Classes.ObjectDetection.ObjectDetection import ObjectDetection  # dein Dateiname hier
+import cv2
+
+from src.Classes.ObjectDetection.ObjectDetection import ObjectDetection
+
 
 class TestObjectDetection(unittest.TestCase):
-
     def setUp(self):
-        self.detector = ObjectDetection()
-        self.dummy_img = np.ones((100, 100), dtype=np.uint8) * 255  # weißes Bild
+        # Picamera2 patchen, damit es beim FrameProcessor-Konstruktor nicht crasht
+        patcher_picamera2 = patch('src.Classes.FrameProcessor.Picamera2')
+        self.mock_picamera2_cls = patcher_picamera2.start()
+        self.addCleanup(patcher_picamera2.stop)
+        self.mock_picamera2_instance = MagicMock()
+        self.mock_picamera2_cls.return_value = self.mock_picamera2_instance
 
-    def test_crop_image_valid_gray(self):
-        gray_img = np.zeros((100, 100), dtype=np.uint8)
-        cropped = self.detector.crop_image(gray_img)
-        self.assertIsInstance(cropped, np.ndarray)
-        self.assertEqual(cropped.ndim, 2)
+        # FrameProcessor patchen (falls nötig)
+        patcher_fp = patch('src.Classes.FrameProcessor.FrameProcessor')
+        self.mock_frame_processor_cls = patcher_fp.start()
+        self.addCleanup(patcher_fp.stop)
+        self.mock_frame_processor_instance = MagicMock()
+        self.mock_frame_processor_cls.return_value = self.mock_frame_processor_instance
+
+        # Dein ObjektDetection-Objekt initialisieren
+        self.obj_det = ObjectDetection()
+        # zusätzlich: mock für Kamera-Objekt, falls dein ObjectDetection das verwendet
+        self.mock_camera = MagicMock()
+        # Falls ObjectDetection.camera = self.mock_camera gemacht werden soll:
+        self.obj_det.camera = self.mock_camera
+
+    @patch('cv2.threshold')
+    @patch('cv2.findContours')
+    def test_get_zumo_position_only_contours(self, mock_findContours, mock_threshold):
+        # Setup mocks
+        img = np.zeros((10, 10), dtype=np.uint8)
+        mock_threshold.return_value = (None, np.ones((10, 10), dtype=np.uint8) * 255)
+        # Provide two simple contours
+        cnt1 = np.array([[[0, 0]], [[1, 0]], [[1, 1]], [[0, 1]]])
+        cnt2 = np.array([[[2, 2]], [[3, 2]], [[3, 3]], [[2, 3]]])
+        mock_findContours.return_value = ([cnt1, cnt2], None)
+
+        # only_contours=True returns top contours directly
+        result = self.obj_det.get_zumo_position(img, only_contours=True)
+        self.assertEqual(result, [cnt1, cnt2])
+
+    @patch('cv2.minAreaRect')
+    @patch('cv2.threshold')
+    @patch('cv2.findContours')
+    def test_get_zumo_position_returns_position(self, mock_findContours, mock_threshold, mock_minAreaRect):
+        img = np.zeros((10, 10), dtype=np.uint8)
+        mock_threshold.return_value = (None, np.ones((10, 10), dtype=np.uint8) * 255)
+        # Two contours for combination
+        cnt1 = np.array([[[0, 0]], [[1, 0]], [[1, 1]], [[0, 1]]])
+        cnt2 = np.array([[[2, 2]], [[3, 2]], [[3, 3]], [[2, 3]]])
+        mock_findContours.return_value = ([cnt1, cnt2], None)
+
+        # Mock minAreaRect results with controlled values to pass fitness score test
+        mock_minAreaRect.side_effect = [
+            ((0, 0), (10, 10), 10),
+            ((0, 0), (10, 10), 10),
+            ((0, 0), (10, 10), 10),
+            ((0, 0), (10, 10), 10),
+        ]
+
+        result = self.obj_det.get_zumo_position(img, only_contours=False)
+        self.assertIsInstance(result, dict)
+        self.assertIn('xCoord', result)
+        self.assertIn('yCoord', result)
+        self.assertIn('dx', result)
+        self.assertIn('dy', result)
+
+    @patch('cv2.threshold')
+    @patch('cv2.findContours')
+    def test_get_zumo_position_no_contours(self, mock_findContours, mock_threshold):
+        img = np.zeros((10, 10), dtype=np.uint8)
+        mock_threshold.return_value = (None, np.ones((10, 10), dtype=np.uint8) * 255)
+        mock_findContours.return_value = ([], None)
+
+        result = self.obj_det.get_zumo_position(img)
+        self.assertIsNone(result)
+
+    @patch.object(ObjectDetection, 'get_zumo_position')
+    @patch('cv2.threshold')
+    @patch('cv2.findContours')
+    def test_get_object_position_filters_and_returns_objects(self, mock_findContours, mock_threshold,
+                                                             mock_get_zumo_position):
+        img = np.zeros((20, 20), dtype=np.uint8)
+
+        # Mock Zumo data (simulate position)
+        mock_get_zumo_position.return_value = {'xCoord': 5, 'yCoord': 5, 'dx': 10, 'dy': 10}
+
+        # Mock threshold and contours with 3 contours
+        mock_threshold.return_value = (None, np.ones((20, 20), dtype=np.uint8) * 255)
+        cnt1 = np.array([[[0, 0]], [[1, 0]], [[1, 1]], [[0, 1]]])  # Small contour
+        cnt2 = np.array([[[6, 6]], [[7, 6]], [[7, 7]], [[6, 7]]])  # Close to Zumo -> exclude
+        cnt3 = np.array([[[20, 20]], [[22, 20]], [[22, 22]], [[20, 22]]])  # Large contour, keep
+
+        mock_findContours.return_value = ([cnt1, cnt2, cnt3], None)
+
+        # Patch boundingRect to return sizes for each contour
+        with patch('cv2.boundingRect') as mock_boundingRect:
+            mock_boundingRect.side_effect = [
+                (0, 0, 1, 1),  # cnt1 area 1 < min_area
+                (6, 6, 2, 2),  # cnt2 close to Zumo, should exclude
+                (20, 20, 2, 2)  # cnt3 area 4 > min_area=3 -> keep
+            ]
+
+            objects = self.obj_det.get_object_position(img, min_area=3)
+            self.assertEqual(len(objects), 1)
+            self.assertEqual(objects[0]['xCoord'], 20)
+
+    def test_crop_image_with_dark_frame(self):
+        # Create gray image with dark border
+        img = np.ones((10, 10), dtype=np.uint8) * 255
+        img[0, :] = 0
+        img[:, 0] = 0
+        img[9, :] = 0
+        img[:, 9] = 0
+
+        cropped = self.obj_det.crop_image(img, dark_thresh=10)
+        # Result should be smaller than original due to crop
+        self.assertTrue(cropped.shape[0] < img.shape[0])
+        self.assertTrue(cropped.shape[1] < img.shape[1])
+
+    def test_crop_image_no_dark_frame(self):
+        img = np.ones((10, 10), dtype=np.uint8) * 255
+        cropped = self.obj_det.crop_image(img, dark_thresh=10)
+        self.assertTrue(np.array_equal(cropped, img))
 
     def test_crop_image_invalid_input(self):
         with self.assertRaises(ValueError):
-            self.detector.crop_image(np.zeros((100, 100, 3), dtype=np.uint8))
+            self.obj_det.crop_image(None)
+        with self.assertRaises(ValueError):
+            self.obj_det.crop_image(np.zeros((10, 10, 3), dtype=np.uint8))  # 3D image
 
-    def test_identify_features(self):
-        contour = np.array([[[10, 10]], [[10, 20]], [[20, 20]], [[20, 10]]])
-        result = self.detector.identify_features(contour)
-        self.assertIn("area", result)
-        self.assertIn("aspect_ratio", result)
-        self.assertEqual(result["area"], 121.0)
+    def test_identify_features_returns_correct_dict(self):
+        cnt = np.array([[[0, 0]], [[2, 0]], [[2, 2]], [[0, 2]]])
+        features = self.obj_det.identify_features(cnt)a
+        self.assertEqual(features['area'], 9.0)
+        self.assertAlmostEqual(features['aspect_ratio'], 1.0)
+        self.assertEqual(features['width'], 3)
+        self.assertEqual(features['height'], 3)
 
-    @patch('cv2.findContours')
-    @patch('cv2.threshold')
-    def test_getZumoPosition_only_contours(self, mock_thresh, mock_findContours):
-        mock_thresh.return_value = (None, self.dummy_img)
-        dummy_contour = np.array([[[0, 0]], [[0, 10]], [[10, 10]], [[10, 0]]])
-        mock_findContours.return_value = ([dummy_contour] * 5, None)
+    @patch.object(ObjectDetection, 'get_object_position')
+    @patch.object(ObjectDetection, 'get_zumo_position')
+    def test_handle_object_detection_from_source(self, mock_get_zumo_position, mock_get_object_position):
+        self.mock_camera.get_frame.return_value = (True, np.ones((10, 10), dtype=np.uint8))
+        mock_get_object_position.return_value = ['object1']
+        mock_get_zumo_position.return_value = {'xCoord': 0, 'yCoord': 0, 'dx': 10, 'dy': 10}
 
-        with patch.object(self.detector, 'identify_features') as mock_idf:
-            mock_idf.return_value = {
-                'area': 100.0,
-                'aspect_ratio': 1.0,
-                'x_coord': 0,
-                'y_coord': 0,
-                'width': 10,
-                'height': 10
-            }
+        result = self.obj_det.handle_object_detection_from_source()
+        self.assertIn('zumo', result)
+        self.assertIn('objects', result)
+        self.mock_camera.release.assert_called_once()
 
-            result = self.detector.get_zumo_position(self.dummy_img, only_contours=True)
-            self.assertEqual(len(result), 5)
-
-    @patch('cv2.findContours')
-    @patch('cv2.threshold')
-    def test_getZumoPosition_full_return(self, mock_thresh, mock_findContours):
-        mock_thresh.return_value = (None, self.dummy_img)
-        dummy_contour = np.array([[[0, 0]], [[0, 10]], [[10, 10]], [[10, 0]]])
-        mock_findContours.return_value = ([dummy_contour] * 5, None)
-
-        with patch.object(self.detector, 'identify_features') as mock_idf:
-            mock_idf.side_effect = [
-                {'area': 100.0, 'aspect_ratio': 1.0, 'x_coord': 0, 'y_coord': 0, 'width': 10, 'height': 10},
-                {'area': 90.0, 'aspect_ratio': 1.0, 'x_coord': 5, 'y_coord': 5, 'width': 9, 'height': 10},
-            ]
-
-            result = self.detector.get_zumo_position(self.dummy_img)
-            self.assertIn('xCoord', result)
-            self.assertIn('yCoord', result)
-            self.assertIn('dx', result)
-            self.assertIn('dy', result)
-
-    @patch.object(ObjectDetection, 'getZumoPosition')
-    @patch('cv2.findContours')
-    @patch('cv2.threshold')
-    def test_get_object_position_with_objects(self, mock_thresh, mock_findContours, mock_zumo):
-        mock_zumo.return_value = {
-            'xCoord': 10,
-            'yCoord': 10,
-            'dx': 5,
-            'dy': 5
-        }
-
-        dummy_contour = np.array([[[20, 20]], [[20, 40]], [[40, 40]], [[40, 20]]])  # außerhalb von Zumo-Bereich
-        mock_thresh.return_value = (None, self.dummy_img)
-        mock_findContours.return_value = ([dummy_contour], None)
-
-        result = self.detector.get_object_position(self.dummy_img, only_contours=False)
-        print(result)
-        self.assertIsInstance(result, list)
-        self.assertEqual(len(result), 0)
-        self.assertIn('xCoord', result[0])
-
-    def test_get_object_position_returns_only_contours(self):
-        with patch.object(self.detector, 'getZumoPosition', return_value={
-            'xCoord': 0, 'yCoord': 0, 'dx': 0, 'dy': 0
-        }), patch('cv2.findContours', return_value=([np.array([[[0, 0]], [[0, 30]], [[30, 30]], [[30, 0]]])], None)), \
-             patch('cv2.threshold', return_value=(None, self.dummy_img)):
-            result = self.detector.get_object_position(self.dummy_img, only_contours=True)
-            self.assertIsInstance(result, list)
-            self.assertGreater(len(result), 0)
 
 if __name__ == '__main__':
     unittest.main()

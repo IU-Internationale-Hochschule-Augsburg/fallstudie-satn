@@ -70,6 +70,7 @@ class FrameProcessor:
         """
         Holt ein einzelnes Bild von der Kamera, verarbeitet es und kodiert als JPEG.
         :return: (ok: bool, jpeg_bytes: bytes)
+        :rtype: Boolean, numpy.ndarray
         """
         if self.picam2 is None:
             return False, None

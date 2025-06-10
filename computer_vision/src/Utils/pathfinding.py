@@ -6,7 +6,7 @@ import math
 
 
 class LastStartPosition:
-    data = {
+    data: dict[int, None] = {
         "xCoord": None,
         "yCoord": None,
         "xDirect": None,

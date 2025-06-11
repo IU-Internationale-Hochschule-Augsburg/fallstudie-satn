@@ -82,7 +82,7 @@ class ObjectDetection:
             'dy': h1
         }
 
-    def get_object_position(self, img, t=130, min_area=300, only_contours=False):
+    def get_object_position(self, img, t=100, min_area=300, only_contours=False):
         """
         Detects all objects in the image that are not part of the Zumo robot.
 

@@ -53,7 +53,7 @@ class ObjectDetection:
             if w1 == 0 or w2 == 0:
                 fitness_score += 100
             else:
-                if w1 > 100 or w2 > 100:
+                if (w1 > 100 or w2 > 100) or (w1 < 10 or w2 <10):
                     fitness_score += 100
                 else:
                     fitness_score += (h1 / h2) ** 2
@@ -62,11 +62,14 @@ class ObjectDetection:
             if h1 == 0 or h2 == 0:
                 fitness_score += 100
             else:
-                if h1 > 100 or h2 > 100:
+                if (h1 > 100 or h2 > 100) or (h1 < 10 or h2 <10):
                     fitness_score += 100
                 else:
                     fitness_score += (h1 / h2) ** 2
-
+            if (x1 < 10 or x2 < 10) or (x1 > 380 or x2 >380):
+                fitness_score += 100
+            if (y1 < 10 or y2 < 10) or (y1 > 280 or y2 >280):
+                fitness_score += 100
             #angle health
             #fitness_score += (angle1 / angle2) ** 2
 

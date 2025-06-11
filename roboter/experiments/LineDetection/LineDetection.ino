@@ -1,7 +1,10 @@
 #include <Zumo32U4.h>
 
+
 Zumo32U4Motors motors;
+Zumo32U4LineSensors lineSensors;
 Zumo32U4Encoders encoders;
+int zufallszahl;
 
 void turnOnSpot(int angle) {
   // Prüfen, ob ein gültiger Winkel übergeben wurde.
@@ -40,13 +43,48 @@ void turnOnSpot(int angle) {
   
 }
 
-void setup() {
 
-  // Beispiel: Drehe um 90 Grad gegen den Uhrzeigersinn
-  turnOnSpot(180);
+unsigned int sensorValues[5];  // Platz für 5 Sensoren
+
+
+// Schwellenwert zwischen "hell" und "dunkel"
+     
+const unsigned int BLACK_THRESHOLD = 188;
+
+void setup() {
+  Serial.begin(9600);
+  lineSensors.initFiveSensors();
+  zufallszahl = random(100, 260);
+  delay(1000);  
+  
 }
 
 void loop() {
+  
+  lineSensors.read(sensorValues);  // Lese Sensoren ein
 
+  bool seesBlack = false;
+
+
+    
+    // Prüfe, ob Sensorwert unter dem Schwellenwert liegt (→ dunkel)
+    if (sensorValues[0] > BLACK_THRESHOLD) {
+      Serial.println(sensorValues[0]);
+
+       motors.setLeftSpeed(0);
+      motors.setRightSpeed(0);
+      turnOnSpot(zufallszahl);
+    } else {
+      seesBlack = false;
+      Serial.println(sensorValues[0]);
+      motors.setLeftSpeed(50);
+      motors.setRightSpeed(50);
+    }
+  
+
+  //Serial.println(seesBlack ? "true" : "false");
+  delay(200);  
 }
+
+
 

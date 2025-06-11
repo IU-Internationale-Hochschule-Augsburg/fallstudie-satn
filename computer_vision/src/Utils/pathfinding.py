@@ -167,4 +167,4 @@ def vector_to_angle(x: int, y: int):
     """
     angle_rad: float = math.atan2(x, y)
     angle_deg: float = math.degrees(angle_rad)
-    return angle_deg
+    return angle_deg * -1

@@ -10,7 +10,7 @@ class ObjectDetection:
         self.camera = FrameProcessor()
         self.camera.open()
 
-    def get_zumo_position(self, img, t=130, only_contours=False):
+    def get_zumo_position(self, img, t=120, only_contours=False):
         """
         Detects the position of a Zumo robot based on geometric feature similarity.
 

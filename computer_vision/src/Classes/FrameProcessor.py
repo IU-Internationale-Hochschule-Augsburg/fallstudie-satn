@@ -110,7 +110,7 @@ class FrameProcessor:
             self.release()
 
     def fix_perspective(self,img):
-        _, tresh = cv2.threshold(img, 170, 255, cv2.THRESH_BINARY)
+        _, tresh = cv2.threshold(img, 160, 255, cv2.THRESH_BINARY)
 
         contours, hierarchy = cv2.findContours(tresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 

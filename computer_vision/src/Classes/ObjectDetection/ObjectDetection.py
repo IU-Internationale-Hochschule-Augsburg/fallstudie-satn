@@ -32,7 +32,7 @@ class ObjectDetection:
 
         # Sort contours by area (descending), pick the top 5 largest ones
         sorted_contours = sorted(contours, key=cv2.contourArea, reverse=True)
-        top_contours = sorted_contours[:5]
+        top_contours = sorted_contours[:10]
 
         if only_contours:
             return top_contours
@@ -40,14 +40,14 @@ class ObjectDetection:
         # Try to find the most similar pair of contours to detect Zumo's markers
         best_pair = None
         best_score = 999
-
+        print("possible zumo contours", len(top_contours))
         for rect1, rect2 in itertools.combinations(top_contours, 2):
             # Extract features from both contours
             if rect1 is None or rect2 is None:
                 return None
             (x1, y1), (w1, h1), angle1 = cv2.minAreaRect(rect1)
             (x2, y2), (w2, h2), angle2 = cv2.minAreaRect(rect2)
-
+            
             fitness_score = 0
             # width health
             fitness_score += (w1 / w2) ** 2
@@ -58,7 +58,7 @@ class ObjectDetection:
             #angle health
             fitness_score += (angle1 / angle2) ** 2
 
-
+            print("fitness score", fitness_score)
             if fitness_score < best_score:
                 best_pair = (rect1, rect2)
                 best_score = fitness_score

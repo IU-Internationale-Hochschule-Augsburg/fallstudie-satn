@@ -29,7 +29,7 @@ class ObjectDetection:
 
         # Find external contours in the thresholded image
         contours, _ = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-
+        
         # Sort contours by area (descending), pick the top 5 largest ones
         sorted_contours = sorted(contours, key=cv2.contourArea, reverse=True)
         top_contours = sorted_contours[:10]
@@ -64,7 +64,7 @@ class ObjectDetection:
             #angle health
             #fitness_score += (angle1 / angle2) ** 2
 
-            print("fitness score", fitness_score)
+            
             if fitness_score < best_score:
                 best_pair = (rect1, rect2)
                 best_score = fitness_score
@@ -102,7 +102,7 @@ class ObjectDetection:
             print("No Zumo detected")
             return None
         _, tresh = cv2.threshold(img, t, 190, cv2.THRESH_BINARY_INV)
-
+        print("zumo",zumo_data)
         # Detect contours
         contours, _ = cv2.findContours(tresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 

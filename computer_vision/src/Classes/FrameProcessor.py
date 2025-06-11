@@ -129,7 +129,7 @@ class FrameProcessor:
                     rect = self.order_points(pts)
 
                     # Zielrechteck (z. B. 300x400 px)
-                    width, height = 300, 400
+                    width, height = 400, 300
                     dst = np.array([
                         [0, 0],
                         [width - 1, 0],

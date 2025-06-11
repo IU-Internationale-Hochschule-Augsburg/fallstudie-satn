@@ -50,13 +50,19 @@ class ObjectDetection:
             
             fitness_score = 0
             # width health
-            fitness_score += (w1 / w2) ** 2
+            if w1 == 0 or w2 == 0:
+                fitness_score += 100
+            else:
+                fitness_score += (w1 / w2) ** 2
 
             #hight health
-            fitness_score += (h1 / h2) ** 2
+            if h1 == 0 or h2 == 0:
+                fitness_score += 100
+            else:
+                fitness_score += (h1 / h2) ** 2
 
             #angle health
-            fitness_score += (angle1 / angle2) ** 2
+            #fitness_score += (angle1 / angle2) ** 2
 
             print("fitness score", fitness_score)
             if fitness_score < best_score:

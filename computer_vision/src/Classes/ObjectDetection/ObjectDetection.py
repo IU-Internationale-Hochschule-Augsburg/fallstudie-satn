@@ -10,7 +10,7 @@ class ObjectDetection:
         self.camera = FrameProcessor()
         self.camera.open()
 
-    def get_zumo_position(self, img, t=50, only_contours=False):
+    def get_zumo_position(self, img, t=130, only_contours=False):
         """
         Detects the position of a Zumo robot based on geometric feature similarity.
 
@@ -76,7 +76,7 @@ class ObjectDetection:
             'dy': h1
         }
 
-    def get_object_position(self, img, t=100, min_area=300, only_contours=False):
+    def get_object_position(self, img, t=130, min_area=300, only_contours=False):
         """
         Detects all objects in the image that are not part of the Zumo robot.
 

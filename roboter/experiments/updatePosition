@@ -1,0 +1,16 @@
+#include <math.h>
+
+// Globale Positions- und Orientierungswerte
+float posX = 0.0;
+float posY = 0.0;
+float orientation = 0.0; // in Grad, 0° = "nach vorne"
+
+void updatePosition(int durationMs, float speedMmPerS) {
+  float durationS = durationMs / 1000.0;
+  float distanceMm = speedMmPerS * durationS;
+
+  // Umrechnung des Winkels in Bogenmaß für trigonometrische Funktionen
+  float angleRad = orientation * (PI / 180.0);
+  posX += cos(angleRad) * distanceMm;
+  posY += sin(angleRad) * distanceMm;
+}

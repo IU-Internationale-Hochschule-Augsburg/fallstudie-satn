@@ -2,11 +2,11 @@
 
 QTRSensors qtr;  // Hauptobjekt für alle Sensoren
 
-const uint8_t NUM_SENSORS = 3;
-const uint8_t SENSOR_PINS[NUM_SENSORS] = {4,5,11};
+const uint8_t NUM_SENSORS = 1;
+const uint8_t SENSOR_PINS[NUM_SENSORS] = {11};
 
 uint16_t sensorValues[NUM_SENSORS];
-const uint16_t THRESHOLD = 30; // 0 = weiß, höher = schwarz
+const uint16_t THRESHOLD = 100; // 0 bis 100 = hell, höher = schwarz
 
 void setup() {
   Serial.begin(9600);
@@ -26,29 +26,22 @@ void setup() {
 }
 
 void loop() {
-  // Kalibrierte Werte lesen (0 = hell, 1000 = schwarz)
+  // Kalibrierte Werte lesen 
   qtr.readCalibrated(sensorValues);
 
   bool lineDetected = true;
-  for (uint8_t i = 0; i < NUM_SENSORS; i++) {
-    if (sensorValues[i] > THRESHOLD) {
-      lineDetected = false;
-      break;
-    }
+  if (sensorValues[0] > THRESHOLD) {
+    lineDetected = false;
   }
+  
 
   // Ausgabe
   Serial.print("Werte: ");
-  for (uint8_t i = 0; i < NUM_SENSORS; i++) {
-    Serial.print(sensorValues[i]);
-    if (i < NUM_SENSORS - 1) Serial.print(", ");
-  }
+  Serial.print(sensorValues[i]);
 
   if (lineDetected) {
     Serial.println("  -> LINIE erkannt!");
   } else {
     Serial.println("  -> keine Linie");
   }
-
-  delay(1000);
 }
